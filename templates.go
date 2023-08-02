@@ -58,6 +58,19 @@ var templates = []Template{
 * prohibited.
 *
 ****************************************************************/`},
+	{".js", `/****************************************************************
+*
+* File : {FILENAME}
+* Author : {AUTHOR}
+* 
+*
+* Copyright (C) {YEARS} Centria University of Applied Sciences.
+* All rights reserved.
+*
+* Unauthorized copying of this file, via any medium is strictly
+* prohibited.
+*
+****************************************************************/`},
 
 	// Add more templates for other file types if needed
 }

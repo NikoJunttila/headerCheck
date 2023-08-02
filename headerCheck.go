@@ -37,8 +37,18 @@ func checkHeader(path string, info os.FileInfo, err error) error {
 		fmt.Printf("Error running 'git log' command for file %s: %v\nOutput: %s\n", path, err, output)
 		return err
 	}
+	cmd2 := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%an <%ae>\"", "--", path)
+	output2, err := cmd2.Output()
+	if err != nil {
+		fmt.Printf("Error running 'git log' command for file %s: %v\n", path, err)
+		return err
+	}
 
+	authors := deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+	authorList := strings.Join(authors, "\n*          ")
+	trimmedAuthorList := strings.ReplaceAll(authorList, `"`, "")
 	commitDates := strings.Fields(string(output))
+
 	var years []string
 	for _, date := range commitDates {
 		years = append(years, date[:5])
@@ -47,9 +57,8 @@ func checkHeader(path string, info os.FileInfo, err error) error {
 	yearRange := formatYearRange(years)
 	trimmedYearRange := strings.ReplaceAll(yearRange, `"`, "")
 
-	author := "based"
 	templateContent = strings.ReplaceAll(templateContent, "{YEARS}", trimmedYearRange)
-	templateContent = strings.ReplaceAll(templateContent, "{AUTHOR}", author)
+	templateContent = strings.ReplaceAll(templateContent, "{AUTHOR}", trimmedAuthorList)
 	templateContent = strings.ReplaceAll(templateContent, "{FILENAME}", filepath.Base(path))
 
 	existingContent, err := os.ReadFile(path)
@@ -57,20 +66,24 @@ func checkHeader(path string, info os.FileInfo, err error) error {
 		fmt.Printf("Error reading file %s: %v\n", path, err)
 		return err
 	}
-	if suffix == ".go" || suffix == ".cpp" || suffix == ".c" {
-		// Find the position of the old header, if it exists
+	existingHeader := ""
+	if suffix == ".go" || suffix == ".cpp" || suffix == ".c" || suffix == ".js" {
 		headerStartIndex := strings.Index(string(existingContent), "****************************************************************/")
 		if headerStartIndex != -1 {
-			// Skip the old header and get the remaining content
+			existingHeader = string(existingContent[:headerStartIndex+len("****************************************************************/")])
 			existingContent = existingContent[headerStartIndex+len("****************************************************************/"):]
 		}
 	} else if suffix == ".py" {
 		headerStartIndex := strings.Index(string(existingContent), `**************************************************************"""`)
 		if headerStartIndex != -1 {
+			existingHeader = string(existingContent[:headerStartIndex+len(`**************************************************************"""`)])
 			existingContent = existingContent[headerStartIndex+len(`**************************************************************"""`):]
 		}
 	}
-
+	if existingHeader == templateContent {
+		fmt.Printf("Copyright header already exists and matches for file: %s\n", path)
+		return nil
+	}
 	// Combine the new header with the existing content
 	newContent := templateContent + "\n" + string(existingContent)
 
