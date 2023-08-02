@@ -67,7 +67,7 @@ func checkHeader(path string, info os.FileInfo, err error) error {
 		return err
 	}
 	existingHeader := ""
-	if suffix == ".go" || suffix == ".cpp" || suffix == ".c" || suffix == ".js" {
+	if suffix == ".go" || suffix == ".cpp" || suffix == ".c" || suffix == ".js" || suffix == ".ts" {
 		headerStartIndex := strings.Index(string(existingContent), "****************************************************************/")
 		if headerStartIndex != -1 {
 			existingHeader = string(existingContent[:headerStartIndex+len("****************************************************************/")])

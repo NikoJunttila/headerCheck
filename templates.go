@@ -8,7 +8,7 @@ type Template struct {
 var templates = []Template{
 	{".cpp", `/****************************************************************
 *
-* File : {FILENAME}
+* File   : {FILENAME}
 * Author : {AUTHOR}
 * 
 *
@@ -21,7 +21,7 @@ var templates = []Template{
 ****************************************************************/`},
 	{".go", `/****************************************************************
 *
-* File : {FILENAME}
+* File   : {FILENAME}
 * Author : {AUTHOR}
 * 
 *
@@ -34,7 +34,7 @@ var templates = []Template{
 ****************************************************************/`},
 	{".py", `"""****************************************************************
 *
-* File : {FILENAME}
+* File   : {FILENAME}
 * Author : {AUTHOR}
 * 
 *
@@ -47,7 +47,7 @@ var templates = []Template{
 ****************************************************************"""`},
 	{".c", `/****************************************************************
 *
-* File : {FILENAME}
+* File   : {FILENAME}
 * Author : {AUTHOR}
 * 
 *
@@ -60,7 +60,20 @@ var templates = []Template{
 ****************************************************************/`},
 	{".js", `/****************************************************************
 *
-* File : {FILENAME}
+* File   : {FILENAME}
+* Author : {AUTHOR}
+* 
+*
+* Copyright (C) {YEARS} Centria University of Applied Sciences.
+* All rights reserved.
+*
+* Unauthorized copying of this file, via any medium is strictly
+* prohibited.
+*
+****************************************************************/`},
+	{".ts", `/****************************************************************
+*
+* File   : {FILENAME}
 * Author : {AUTHOR}
 * 
 *
