@@ -16,7 +16,10 @@ func checkHeader(rootDir string, force bool) error {
 			return err
 		}
 
-		if info.IsDir() {
+		if shouldSkipDir(info) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 		// Check if the file has a recognized suffix for which we have a template
@@ -140,4 +143,23 @@ func formatYearRange(years []string) string {
 	} else {
 		return years[0] + "-" + years[len(years)-1]
 	}
+}
+
+// add more when needed
+var foldersToSkip = []string{
+	"node_modules",
+	".venv",
+	"build",
+}
+
+func shouldSkipDir(d os.DirEntry) bool {
+	if d.IsDir() {
+		dirName := d.Name()
+		for _, folder := range foldersToSkip {
+			if dirName == folder {
+				return true
+			}
+		}
+	}
+	return false
 }
