@@ -33,31 +33,34 @@ func checkHeader(rootDir string, force bool) error {
 			return nil
 		}
 		// Retrieve the commit dates of the file using the "git log" command
+		var trimmedYearRange string
 		cmd := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%as\"", "--", path)
 		output, err := cmd.CombinedOutput() // Use CombinedOutput to get both stdout and stderr
 		if err != nil {
 			fmt.Printf("Error running 'git log' command for file %s: %v\nOutput: %s\n", path, err, output)
-			return err
+			trimmedYearRange = "2023"
+		} else {
+			commitDates := strings.Fields(string(output))
+			var years []string
+			for _, date := range commitDates {
+				years = append(years, date[:5])
+			}
+			years = deduplicateAndSort(years)
+			yearRange := formatYearRange(years)
+			trimmedYearRange = strings.ReplaceAll(yearRange, `"`, "")
 		}
+
+		var trimmedAuthorList string
 		cmd2 := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%an <%ae>\"", "--", path)
 		output2, err := cmd2.Output()
 		if err != nil {
 			fmt.Printf("Error running 'git log' command for file %s: %v\n", path, err)
-			return err
+			trimmedAuthorList = "Unknown"
+		} else {
+			authors := deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+			authorList := strings.Join(authors, "\n*          ")
+			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
-
-		authors := deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
-		authorList := strings.Join(authors, "\n*          ")
-		trimmedAuthorList := strings.ReplaceAll(authorList, `"`, "")
-		commitDates := strings.Fields(string(output))
-
-		var years []string
-		for _, date := range commitDates {
-			years = append(years, date[:5])
-		}
-		years = deduplicateAndSort(years)
-		yearRange := formatYearRange(years)
-		trimmedYearRange := strings.ReplaceAll(yearRange, `"`, "")
 
 		templateContent = strings.ReplaceAll(templateContent, "{YEARS}", trimmedYearRange)
 		templateContent = strings.ReplaceAll(templateContent, "{AUTHOR}", trimmedAuthorList)
@@ -69,24 +72,36 @@ func checkHeader(rootDir string, force bool) error {
 			return err
 		}
 		existingHeader := ""
-		if suffix == ".go" || suffix == ".cpp" || suffix == ".c" || suffix == ".js" || suffix == ".ts" {
+
+		switch suffix {
+		case ".go", ".cpp", ".c", ".js", ".ts", ".cs", ".java", ".rs", ".qlm", ".css":
 			headerStartIndex := strings.Index(string(existingContent), "****************************************************************/")
 			if headerStartIndex != -1 {
 				existingHeader = string(existingContent[:headerStartIndex+len("****************************************************************/")])
 				existingContent = existingContent[headerStartIndex+len("****************************************************************/"):]
 			}
-		} else if suffix == ".py" {
+		case ".py":
 			headerStartIndex := strings.Index(string(existingContent), `**************************************************************"""`)
 			if headerStartIndex != -1 {
 				existingHeader = string(existingContent[:headerStartIndex+len(`**************************************************************"""`)])
 				existingContent = existingContent[headerStartIndex+len(`**************************************************************"""`):]
 			}
+		case ".html":
+			headerStartIndex := strings.Index(string(existingContent), `------------------------------------------------------------->`)
+			if headerStartIndex != -1 {
+				existingHeader = string(existingContent[:headerStartIndex+len(`------------------------------------------------------------->`)])
+				existingContent = existingContent[headerStartIndex+len(`------------------------------------------------------------->`):]
+			}
+		default:
+			fmt.Println("error no suffix found")
+			return nil
 		}
+
 		if existingHeader == templateContent {
 			return nil
 		}
 		if !force {
-			fmt.Printf("header in file %s\n needs fixing", path)
+			fmt.Printf("file %s needs fixing \n", path)
 			return nil
 		}
 		// Combine the new header with the existing content
