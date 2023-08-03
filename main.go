@@ -1,20 +1,19 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: copyright_checker <project_path>")
-		os.Exit(1)
-	}
+	defaultProjectPath, err := os.Getwd()
+	projectPathFlagPtr := flag.String("src", defaultProjectPath, "a string")
+	forceFlagPtr := flag.Bool("force", false, "a bool")
+	flag.Parse()
 
-	projectPath := os.Args[1]
-
-	err := filepath.Walk(projectPath, checkHeader)
+	err = checkHeader(*projectPathFlagPtr, *forceFlagPtr)
+	fmt.Println("All files checked")
 	if err != nil {
 		fmt.Printf("Error scanning project: %v\n", err)
 		os.Exit(1)
