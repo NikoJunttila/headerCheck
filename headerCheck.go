@@ -6,11 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
-func checkHeader(rootDir string, force bool) error {
+func checkHeader(rootDir string, force bool, yearFlag string, authorFlag string) error {
 	err := filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -22,26 +21,26 @@ func checkHeader(rootDir string, force bool) error {
 			}
 			return nil
 		}
-		// Check if the file has a recognized suffix for which we have a template
 		suffix := filepath.Ext(path)
 		var templateContent string
-		for _, template := range templates {
-			if strings.EqualFold(template.Suffix, suffix) {
-				templateContent = template.Header
-				break
-			}
-		}
-
-		if templateContent == "" {
+		//add more suffix/templates when needed
+		switch suffix {
+		case ".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts", ".cs", ".java", ".rs", ".qlm", ".css":
+			templateContent = templates[0].Header
+		case ".py":
+			templateContent = templates[1].Header
+		case ".html":
+			templateContent = templates[2].Header
+		default:
 			return nil
 		}
 		// Retrieve the commit dates of the file using the "git log" command
 		var trimmedYearRange string
 		cmd := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%as\"", "--", path)
-		output, err := cmd.CombinedOutput() // Use CombinedOutput to get both stdout and stderr
+		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("Error running 'git log' command for file %s: %v\nOutput: %s\n", path, err, output)
-			trimmedYearRange = "2023"
+			trimmedYearRange = yearFlag
 		} else {
 			commitDates := strings.Fields(string(output))
 			var years []string
@@ -57,8 +56,7 @@ func checkHeader(rootDir string, force bool) error {
 		cmd2 := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%an <%ae>\"", "--", path)
 		output2, err := cmd2.Output()
 		if err != nil {
-			fmt.Printf("Error running 'git log' command for file %s: %v\n", path, err)
-			trimmedAuthorList = "Unknown"
+			trimmedAuthorList = authorFlag
 		} else {
 			authors := deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
 			authorList := strings.Join(authors, "\n*          ")
@@ -121,45 +119,4 @@ func checkHeader(rootDir string, force bool) error {
 		return nil
 	})
 	return err
-}
-
-func deduplicateAndSort(input []string) []string {
-	uniqueMap := make(map[string]bool)
-	for _, v := range input {
-		uniqueMap[v] = true
-	}
-	var uniqueList []string
-	for k := range uniqueMap {
-		uniqueList = append(uniqueList, k)
-	}
-	sort.Strings(uniqueList)
-	return uniqueList
-}
-func formatYearRange(years []string) string {
-	if len(years) == 0 {
-		return ""
-	} else if len(years) == 1 {
-		return years[0]
-	} else {
-		return years[0] + "-" + years[len(years)-1]
-	}
-}
-
-// add more when needed
-var foldersToSkip = []string{
-	"node_modules",
-	".venv",
-	"build",
-}
-
-func shouldSkipDir(d os.DirEntry) bool {
-	if d.IsDir() {
-		dirName := d.Name()
-		for _, folder := range foldersToSkip {
-			if dirName == folder {
-				return true
-			}
-		}
-	}
-	return false
 }
