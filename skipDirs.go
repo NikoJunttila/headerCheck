@@ -1,21 +1,23 @@
 package main
 
-import (
-	"os"
-)
-
 // add more when needed
 var foldersToSkip = []string{
 	"node_modules",
 	".venv",
 	"build",
 }
+var filesToSkip = []string{}
 
-func shouldSkipDir(d os.DirEntry) bool {
-	if d.IsDir() {
-		dirName := d.Name()
+func shouldSkipDirOrFile(name string, isDir bool) bool {
+	if isDir {
 		for _, folder := range foldersToSkip {
-			if dirName == folder {
+			if name == folder {
+				return true
+			}
+		}
+	} else {
+		for _, file := range filesToSkip {
+			if name == file {
 				return true
 			}
 		}

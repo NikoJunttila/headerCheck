@@ -9,18 +9,19 @@ import (
 	"strings"
 )
 
-func checkHeader(rootDir string, force bool, yearFlag string, authorFlag string) error {
+func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag string) error {
 	err := filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if shouldSkipDir(info) {
+		if shouldSkipDirOrFile(info.Name(), info.IsDir()) {
 			if info.IsDir() {
 				return filepath.SkipDir
 			}
 			return nil
 		}
+
 		suffix := filepath.Ext(path)
 		var templateContent string
 		//add more suffix/templates when needed
@@ -75,23 +76,23 @@ func checkHeader(rootDir string, force bool, yearFlag string, authorFlag string)
 		existingHeader := ""
 
 		switch suffix {
-		case ".go", ".cpp", ".c", ".js", ".ts", ".cs", ".java", ".rs", ".qlm", ".css":
-			headerStartIndex := strings.Index(string(existingContent), "****************************************************************/")
+		case ".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts", ".cs", ".java", ".rs", ".qlm", ".css":
+			headerStartIndex := strings.Index(string(existingContent), "**********************************************************/")
 			if headerStartIndex != -1 {
-				existingHeader = string(existingContent[:headerStartIndex+len("****************************************************************/")])
-				existingContent = existingContent[headerStartIndex+len("****************************************************************/"):]
+				existingHeader = string(existingContent[:headerStartIndex+len("**********************************************************/")])
+				existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
 			}
 		case ".py":
-			headerStartIndex := strings.Index(string(existingContent), `**************************************************************"""`)
+			headerStartIndex := strings.Index(string(existingContent), `********************************************************"""`)
 			if headerStartIndex != -1 {
-				existingHeader = string(existingContent[:headerStartIndex+len(`**************************************************************"""`)])
-				existingContent = existingContent[headerStartIndex+len(`**************************************************************"""`):]
+				existingHeader = string(existingContent[:headerStartIndex+len(`********************************************************"""`)])
+				existingContent = existingContent[headerStartIndex+len(`********************************************************"""`):]
 			}
 		case ".html":
-			headerStartIndex := strings.Index(string(existingContent), `------------------------------------------------------------->`)
+			headerStartIndex := strings.Index(string(existingContent), `---------------------------------------------------------->`)
 			if headerStartIndex != -1 {
-				existingHeader = string(existingContent[:headerStartIndex+len(`------------------------------------------------------------->`)])
-				existingContent = existingContent[headerStartIndex+len(`------------------------------------------------------------->`):]
+				existingHeader = string(existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)])
+				existingContent = existingContent[headerStartIndex+len(`---------------------------------------------------------->`):]
 			}
 		default:
 			fmt.Println("error no suffix found")
