@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-func readIgnore() {
-	gitignorePath := ".gitignore"
+func readIgnore(gitOrHg string) {
+	gitignorePath := gitOrHg
 	file, err := os.Open(gitignorePath)
 	if err != nil {
 		fmt.Println(err)

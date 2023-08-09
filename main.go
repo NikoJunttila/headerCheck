@@ -21,7 +21,7 @@ func main() {
 	_, err = os.Stat(dotGitfile)
 	if err == nil {
 		fmt.Println("found .git")
-		readIgnore()
+		readIgnore(".gitignore")
 		err = gitCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
@@ -29,6 +29,7 @@ func main() {
 		}
 	} else {
 		fmt.Println("defaulted to mercurial")
+		readIgnore(".hgignore") //idk idk fr fr
 		err = mercuCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
