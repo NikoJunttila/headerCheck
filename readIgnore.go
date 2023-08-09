@@ -11,7 +11,7 @@ func readIgnore() {
 	gitignorePath := ".gitignore"
 	file, err := os.Open(gitignorePath)
 	if err != nil {
-		fmt.Println("Error opening .gitignore:", err)
+		fmt.Println(err)
 		return
 	}
 	defer file.Close()

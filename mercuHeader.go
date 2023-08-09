@@ -24,12 +24,12 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 
 		suffix := filepath.Ext(path)
 		var templateContent string
-		switch suffix {
-		case ".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts", ".cs", ".java", ".rs", ".qlm", ".css":
+		switch {
+		case contains(suffix, defaultSuffix):
 			templateContent = templates[0].Header
-		case ".py":
+		case contains(suffix, pySuffix):
 			templateContent = templates[1].Header
-		case ".html":
+		case contains(suffix, htmlSuffix):
 			templateContent = templates[2].Header
 		default:
 			return nil
@@ -76,20 +76,20 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		}
 		existingHeader := ""
 
-		switch suffix {
-		case ".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts", ".cs", ".java", ".rs", ".qlm", ".css":
+		switch {
+		case contains(suffix, defaultSuffix):
 			headerStartIndex := strings.Index(string(existingContent), "**********************************************************/")
 			if headerStartIndex != -1 {
 				existingHeader = string(existingContent[:headerStartIndex+len("**********************************************************/")])
 				existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
 			}
-		case ".py":
+		case contains(suffix, pySuffix):
 			headerStartIndex := strings.Index(string(existingContent), `********************************************************"""`)
 			if headerStartIndex != -1 {
 				existingHeader = string(existingContent[:headerStartIndex+len(`********************************************************"""`)])
 				existingContent = existingContent[headerStartIndex+len(`********************************************************"""`):]
 			}
-		case ".html":
+		case contains(suffix, htmlSuffix):
 			headerStartIndex := strings.Index(string(existingContent), `---------------------------------------------------------->`)
 			if headerStartIndex != -1 {
 				existingHeader = string(existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)])

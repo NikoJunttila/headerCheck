@@ -25,3 +25,11 @@ func formatYearRange(years []string) string {
 		return years[0] + "-" + years[len(years)-1]
 	}
 }
+func contains(v string, a []string) bool {
+    for _, i := range a {
+        if i == v {
+            return true
+        }
+    }
+    return false
+}

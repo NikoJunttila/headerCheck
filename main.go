@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -12,27 +13,27 @@ func main() {
 	forceFlagPtr := flag.Bool("force", false, "a bool")
 	authorFlagPtr := flag.String("author", "default", "a string")
 	yearFlagPtr := flag.String("year", "2023", "a string")
-	vControlPtr := flag.String("control", "git", "a string")
+	/* 	vControlPtr := flag.String("control", "git", "a string")*/
 	flag.Parse()
 
 	fmt.Println("checking files...")
-	if *vControlPtr == "git" {
+	dotGitfile := filepath.Join(defaultProjectPath, ".git")
+	_, err = os.Stat(dotGitfile)
+	if err == nil {
+		fmt.Println("found .git")
 		readIgnore()
 		err = gitCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-	} else if *vControlPtr == "mer" {
+	} else {
+		fmt.Println("defaulted to mercurial")
 		err = mercuCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-	} else {
-		fmt.Printf("Unexpected version control. check if there is typo in `%v` \n", *vControlPtr)
-		fmt.Println(`currently accepted commands are --control="git" and --control="mer" default=git`)
-		os.Exit(1)
 	}
 
 	fmt.Println("All files checked")
