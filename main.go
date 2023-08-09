@@ -19,8 +19,16 @@ func main() {
 	if *vControlPtr == "git" {
 		readIgnore()
 		err = gitCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	} else if *vControlPtr == "mer" {
-		fmt.Println("work in progress. try again later :(")
+		err = mercuCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	} else {
 		fmt.Printf("Unexpected version control. check if there is typo in `%v` \n", *vControlPtr)
 		fmt.Println(`currently accepted commands are --control="git" and --control="mer" default=git`)

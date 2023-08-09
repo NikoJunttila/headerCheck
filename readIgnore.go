@@ -31,7 +31,7 @@ func readIgnore() {
 		}
 		info, err := os.Stat(entry)
 		if err != nil {
-			fmt.Println("Error getting file info for", entry, ":", err)
+			fmt.Println("No .gitignore file", entry)
 			continue
 		}
 
