@@ -5,24 +5,23 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+  "github.com/fatih/color"
 )
 
 func main() {
 	defaultProjectPath, err := os.Getwd()
-	projectPathFlagPtr := flag.String("src", defaultProjectPath, "a string")
 	forceFlagPtr := flag.Bool("force", false, "a bool")
 	authorFlagPtr := flag.String("author", "default", "a string")
 	yearFlagPtr := flag.String("year", "2023", "a string")
-	/* 	vControlPtr := flag.String("control", "git", "a string")*/
 	flag.Parse()
 
 	fmt.Println("checking files...")
 	dotGitfile := filepath.Join(defaultProjectPath, ".git")
 	_, err = os.Stat(dotGitfile)
 	if err == nil {
-		fmt.Println("found .git")
+		color.Green("found .git")
 		readIgnore(".gitignore")
-		err = gitCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
+		err = gitCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -30,7 +29,7 @@ func main() {
 	} else {
 		fmt.Println("defaulted to mercurial")
 		readIgnore(".hgignore") //idk idk fr fr
-		err = mercuCheckHeader(*projectPathFlagPtr, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
+		err = mercuCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -39,7 +38,7 @@ func main() {
 
 	fmt.Println("All files checked")
 	if err != nil {
-		fmt.Printf("Error scanning project: %v\n", err)
+		color.Red("Error scanning project: %v\n", err)
 		os.Exit(1)
 	}
 }

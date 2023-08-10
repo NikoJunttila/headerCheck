@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag string) error {
@@ -102,7 +104,17 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			return nil
 		}
 		if !force {
-			fmt.Printf("file %s needs fixing \n", path)
+			color.Red("file %s needs fix \n  \n", path)
+			oldLines := strings.Split(existingHeader, "\n")
+			newLines := strings.Split(templateContent, "\n")
+			//fmt.Printf("old lines len %d : new lines %d", len(oldLines), len(newLines))
+			for i := 0; i < len(oldLines) && i < len(newLines); i++ {
+				if oldLines[i] != newLines[i] {
+					color.Red("Line: %d - %s", i+1, oldLines[i])
+					color.Green("Line: %d + %s", i+1, newLines[i])
+					fmt.Println()
+				}
+			}
 			return nil
 		}
 		// Combine the new header with the existing content

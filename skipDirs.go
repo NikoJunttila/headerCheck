@@ -5,6 +5,7 @@ var foldersToSkip = []string{
 	"node_modules",
 	".venv",
 	"build",
+  "vendor",
 }
 var filesToSkip = []string{}
 

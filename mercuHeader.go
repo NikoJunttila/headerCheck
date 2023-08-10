@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+  "github.com/fatih/color"
 )
 
 func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag string) error {
@@ -103,10 +104,22 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		if existingHeader == templateContent {
 			return nil
 		}
-		if !force {
-			fmt.Printf("file %s needs fixing \n", path)
+
+    if !force {
+      color.Red("file %s needs fix \n  \n", path)
+      oldLines := strings.Split(existingHeader, "\n")
+	    newLines := strings.Split(templateContent, "\n")
+
+	    for i := 0; i < len(oldLines) && i < len(newLines); i++ {
+		    if oldLines[i] != newLines[i] {
+        color.Red("Line: %d - %s",i+1, oldLines[i])
+			  color.Green("Line: %d + %s", i+1, newLines[i])
+			  fmt.Println()
+		  }
+	  }
 			return nil
 		}
+
 		newContent := templateContent + "\n" + string(existingContent)
 
 		err = os.WriteFile(path, []byte(newContent), 0644)
