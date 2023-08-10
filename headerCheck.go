@@ -103,20 +103,47 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		if existingHeader == templateContent {
 			return nil
 		}
+		if !force && len(existingHeader) < 10 {
+			color.Red("No header found: %s", path)
+			return nil
+		}
 		if !force {
 			color.Red("file %s needs fix \n  \n", path)
 			oldLines := strings.Split(existingHeader, "\n")
 			newLines := strings.Split(templateContent, "\n")
-			//fmt.Printf("old lines len %d : new lines %d", len(oldLines), len(newLines))
-			for i := 0; i < len(oldLines) && i < len(newLines); i++ {
-				if oldLines[i] != newLines[i] {
-					color.Red("Line: %d - %s", i+1, oldLines[i])
+			diff := len(newLines) - len(oldLines)
+			insertLen := len(oldLines) - 13
+			var result []string
+			if diff > 0 {
+				newString := "*"
+
+				insertIndex := 5 + insertLen
+				before := oldLines[:insertIndex]
+				after := oldLines[insertIndex:]
+				result = append(result, before...)
+				result = append(result, newString)
+				for i := 1; i < diff; i++ {
+					color.Red("added %d", i+1)
+					result = append(result, newString)
+				}
+				result = append(result, after...)
+			} else {
+				result = oldLines
+			}
+			for i := 0; i < len(result) && i < len(newLines); i++ {
+				resultLine := strings.TrimSpace(result[i])
+				newLine := strings.TrimSpace(newLines[i])
+				resultLine = strings.ToLower(resultLine)
+				newLine = strings.ToLower(newLine)
+				if resultLine != newLine {
+					color.Red("Line: %d - %s", i+1, result[i])
 					color.Green("Line: %d + %s", i+1, newLines[i])
 					fmt.Println()
 				}
 			}
 			return nil
 		}
+
 		// Combine the new header with the existing content
 		newContent := templateContent + "\n" + string(existingContent)
 
@@ -127,7 +154,7 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			return err
 		}
 
-		fmt.Printf("Copyright header fixed for file: %s\n", path)
+		color.Green("Copyright header fixed for file: %s\n", path)
 		return nil
 	})
 	return err

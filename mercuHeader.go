@@ -7,7 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-  "github.com/fatih/color"
+
+	"github.com/fatih/color"
 )
 
 func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag string) error {
@@ -105,18 +106,44 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			return nil
 		}
 
-    if !force {
-      color.Red("file %s needs fix \n  \n", path)
-      oldLines := strings.Split(existingHeader, "\n")
-	    newLines := strings.Split(templateContent, "\n")
+		if !force && len(existingHeader) < 10 {
+			color.Red("No header found: %s", path)
+			return nil
+		}
+		if !force {
+			color.Red("file %s needs fix \n  \n", path)
+			oldLines := strings.Split(existingHeader, "\n")
+			newLines := strings.Split(templateContent, "\n")
+			diff := len(newLines) - len(oldLines)
+			insertLen := len(oldLines) - 13
+			var result []string
+			if diff > 0 {
+				newString := "*"
 
-	    for i := 0; i < len(oldLines) && i < len(newLines); i++ {
-		    if oldLines[i] != newLines[i] {
-        color.Red("Line: %d - %s",i+1, oldLines[i])
-			  color.Green("Line: %d + %s", i+1, newLines[i])
-			  fmt.Println()
-		  }
-	  }
+				insertIndex := 5 + insertLen
+				before := oldLines[:insertIndex]
+				after := oldLines[insertIndex:]
+				result = append(result, before...)
+				result = append(result, newString)
+				for i := 1; i < diff; i++ {
+					color.Red("added %d", i+1)
+					result = append(result, newString)
+				}
+				result = append(result, after...)
+			} else {
+				result = oldLines
+			}
+			for i := 0; i < len(result) && i < len(newLines); i++ {
+				resultLine := strings.TrimSpace(result[i])
+				newLine := strings.TrimSpace(newLines[i])
+				resultLine = strings.ToLower(resultLine)
+				newLine = strings.ToLower(newLine)
+				if resultLine != newLine {
+					color.Red("Line: %d - %s", i+1, result[i])
+					color.Green("Line: %d + %s", i+1, newLines[i])
+					fmt.Println()
+				}
+			}
 			return nil
 		}
 
