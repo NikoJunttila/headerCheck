@@ -1,3 +1,16 @@
+/****************************************************************
+*
+* File   : headerCheck.go
+* Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+* 
+*
+* Copyright (C) 2023 Centria University of Applied Sciences.
+* All rights reserved.
+*
+* Unauthorized copying of this file, via any medium is strictly
+* prohibited.
+*
+****************************************************************/
 package main
 
 import (
@@ -55,12 +68,13 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		}
 
 		var trimmedAuthorList string
+		var authors []string
 		cmd2 := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%an <%ae>\"", "--", path)
 		output2, err := cmd2.Output()
 		if err != nil {
 			trimmedAuthorList = authorFlag
 		} else {
-			authors := deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+			authors = deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
 			authorList := strings.Join(authors, "\n*          ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
@@ -75,25 +89,43 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			return err
 		}
 		existingHeader := ""
-
+		maxLines := 18 + len(authors)
 		switch {
 		case contains(suffix, defaultSuffix):
-			headerStartIndex := strings.Index(string(existingContent), "**********************************************************/")
-			if headerStartIndex != -1 {
-				existingHeader = string(existingContent[:headerStartIndex+len("**********************************************************/")])
-				existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
+			headerLinesSplit := strings.Split(string(existingContent), "\n")
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(line, "**********************************************************/") {
+					headerStartIndex := strings.Index(string(existingContent), "**********************************************************/")
+					if headerStartIndex != -1 {
+						existingHeader = string(existingContent[:headerStartIndex+len("**********************************************************/")])
+						existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
+					}
+				}
 			}
 		case contains(suffix, pySuffix):
-			headerStartIndex := strings.Index(string(existingContent), `********************************************************"""`)
-			if headerStartIndex != -1 {
-				existingHeader = string(existingContent[:headerStartIndex+len(`********************************************************"""`)])
-				existingContent = existingContent[headerStartIndex+len(`********************************************************"""`):]
+			headerLinesSplit := strings.Split(string(existingContent), "\n")
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(line, `********************************************************"""`) {
+					headerStartIndex := strings.Index(string(existingContent), `********************************************************"""`)
+					if headerStartIndex != -1 {
+						existingHeader = string(existingContent[:headerStartIndex+len(`********************************************************"""`)])
+						existingContent = existingContent[headerStartIndex+len(`********************************************************"""`):]
+					}
+				}
 			}
 		case contains(suffix, htmlSuffix):
-			headerStartIndex := strings.Index(string(existingContent), `---------------------------------------------------------->`)
-			if headerStartIndex != -1 {
-				existingHeader = string(existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)])
-				existingContent = existingContent[headerStartIndex+len(`---------------------------------------------------------->`):]
+			headerLinesSplit := strings.Split(string(existingContent), "\n")
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(line, `---------------------------------------------------------->`) {
+					headerStartIndex := strings.Index(string(existingContent), `---------------------------------------------------------->`)
+					if headerStartIndex != -1 {
+						existingHeader = string(existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)])
+						existingContent = existingContent[headerStartIndex+len(`---------------------------------------------------------->`):]
+					}
+				}
 			}
 		default:
 			fmt.Println("error no suffix found")
