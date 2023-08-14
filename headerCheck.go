@@ -11,7 +11,6 @@
 * prohibited.
 *
 ****************************************************************/
-
 package main
 
 import (
@@ -113,19 +112,11 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		case contains(suffix, defaultSuffix):
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(
-					line,
-					"**********************************************************/",
-				) {
-					headerStartIndex := strings.Index(
-						string(existingContent),
-						"**********************************************************/",
-					)
+				if strings.Contains(line, "****************************************************************/") {
+					headerStartIndex := strings.Index(string(existingContent), "****************************************************************/")
 					if headerStartIndex != -1 {
-						existingHeader = string(
-							existingContent[:headerStartIndex+len("**********************************************************/")],
-						)
-						existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
+						existingHeader = string(existingContent[:headerStartIndex+len("****************************************************************/")])
+						existingContent = existingContent[headerStartIndex+len("****************************************************************/"):]
 					}
 				}
 			}
@@ -171,13 +162,14 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			fmt.Println("error no suffix found")
 			return nil
 		}
-
-		if existingHeader == templateContent {
+		cleanedHeader := strings.ReplaceAll(strings.ReplaceAll(existingHeader, "\r", ""), "\n", "")
+		cleanedtemplateContent := strings.ReplaceAll(strings.ReplaceAll(templateContent, "\r", ""), "\n", "")
+		if cleanedHeader == cleanedtemplateContent {
 			fmt.Printf("File %s is good \n", path)
 			return nil
 		}
 		if !force && len(existingHeader) < 10 {
-			color.Red("No header found: %s", path)
+			color.Red("No header found: %s \n", path)
 			return nil
 		}
 		if !force {
@@ -202,7 +194,7 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			} else {
 				result = oldLines
 			}
-
+			//compare all lines of both templates and show difference
 			for i := 0; i < len(result) && i < len(newLines); i++ {
 				resultLine := strings.TrimSpace(result[i])
 				newLine := strings.TrimSpace(newLines[i])

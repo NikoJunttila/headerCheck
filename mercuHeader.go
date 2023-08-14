@@ -159,12 +159,13 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			return nil
 		}
 
-		if existingHeader == templateContent {
+		cleanedHeader := strings.ReplaceAll(strings.ReplaceAll(existingHeader, "\r", ""), "\n", "")
+		cleanedtemplateContent := strings.ReplaceAll(strings.ReplaceAll(templateContent, "\r", ""), "\n", "")
+		if cleanedHeader == cleanedtemplateContent {
 			fmt.Printf("File %s is good \n", path)
 			return nil
 		}
-		color.Red(existingHeader)
-		color.Green(templateContent)
+
 		if !force && len(existingHeader) < 10 {
 			color.Red("No header found: %s", path)
 			return nil
