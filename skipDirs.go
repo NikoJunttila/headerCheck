@@ -2,7 +2,7 @@
 *
 * File   : skipDirs.go
 * Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-* 
+*
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
 * All rights reserved.
@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 // add more when needed

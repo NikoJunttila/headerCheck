@@ -2,7 +2,7 @@
 *
 * File   : templates.go
 * Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-* 
+*
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
 * All rights reserved.
@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 type Template struct {
@@ -33,7 +34,7 @@ var templates = []Template{
 *
 * File   : {FILENAME}
 * Author : {AUTHOR}
-* 
+*
 *
 * Copyright (C) {YEARS} Centria University of Applied Sciences.
 * All rights reserved.
@@ -46,7 +47,7 @@ var templates = []Template{
 *
 * File   : {FILENAME}
 * Author : {AUTHOR}
-* 
+*
 *
 * Copyright (C) {YEARS} Centria University of Applied Sciences.
 * All rights reserved.
@@ -59,7 +60,7 @@ var templates = []Template{
 *
 * File   : {FILENAME}
 * Author : {AUTHOR}
-* 
+*
 *
 * Copyright (C) {YEARS} Centria University of Applied Sciences.
 * All rights reserved.

@@ -2,7 +2,7 @@
 *
 * File   : headerCheck.go
 * Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-* 
+*
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
 * All rights reserved.
@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 import (
@@ -36,10 +37,8 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			}
 			return nil
 		}
-
 		suffix := filepath.Ext(path)
 		var templateContent string
-		//add more suffix/templates when needed
 		switch {
 		case contains(suffix, defaultSuffix):
 			templateContent = templates[0].Header
@@ -52,7 +51,15 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		}
 		// Retrieve the commit dates of the file using the "git log" command
 		var trimmedYearRange string
-		cmd := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%as\"", "--", path)
+		cmd := exec.Command(
+			"git",
+			"log",
+			"--follow",
+			"--reverse",
+			"--pretty=format:\"%as\"",
+			"--",
+			path,
+		)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			trimmedYearRange = yearFlag
@@ -69,7 +76,15 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 
 		var trimmedAuthorList string
 		var authors []string
-		cmd2 := exec.Command("git", "log", "--follow", "--reverse", "--pretty=format:\"%an <%ae>\"", "--", path)
+		cmd2 := exec.Command(
+			"git",
+			"log",
+			"--follow",
+			"--reverse",
+			"--pretty=format:\"%an <%ae>\"",
+			"--",
+			path,
+		)
 		output2, err := cmd2.Output()
 		if err != nil {
 			trimmedAuthorList = authorFlag
@@ -90,39 +105,64 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		}
 		existingHeader := ""
 		maxLines := 18 + len(authors)
+		headerLinesSplit := strings.Split(string(existingContent), "\n")
+		if len(headerLinesSplit) < maxLines {
+			maxLines = len(headerLinesSplit)
+		}
 		switch {
 		case contains(suffix, defaultSuffix):
-			headerLinesSplit := strings.Split(string(existingContent), "\n")
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, "**********************************************************/") {
-					headerStartIndex := strings.Index(string(existingContent), "**********************************************************/")
+				if strings.Contains(
+					line,
+					"**********************************************************/",
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						"**********************************************************/",
+					)
 					if headerStartIndex != -1 {
-						existingHeader = string(existingContent[:headerStartIndex+len("**********************************************************/")])
+						existingHeader = string(
+							existingContent[:headerStartIndex+len("**********************************************************/")],
+						)
 						existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
 					}
 				}
 			}
 		case contains(suffix, pySuffix):
-			headerLinesSplit := strings.Split(string(existingContent), "\n")
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, `********************************************************"""`) {
-					headerStartIndex := strings.Index(string(existingContent), `********************************************************"""`)
+				if strings.Contains(
+					line,
+					`********************************************************"""`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`********************************************************"""`,
+					)
 					if headerStartIndex != -1 {
-						existingHeader = string(existingContent[:headerStartIndex+len(`********************************************************"""`)])
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`********************************************************"""`)],
+						)
 						existingContent = existingContent[headerStartIndex+len(`********************************************************"""`):]
 					}
 				}
 			}
 		case contains(suffix, htmlSuffix):
-			headerLinesSplit := strings.Split(string(existingContent), "\n")
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, `---------------------------------------------------------->`) {
-					headerStartIndex := strings.Index(string(existingContent), `---------------------------------------------------------->`)
+				if strings.Contains(
+					line,
+					`---------------------------------------------------------->`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`---------------------------------------------------------->`,
+					)
 					if headerStartIndex != -1 {
-						existingHeader = string(existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)])
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)],
+						)
 						existingContent = existingContent[headerStartIndex+len(`---------------------------------------------------------->`):]
 					}
 				}
@@ -133,6 +173,7 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		}
 
 		if existingHeader == templateContent {
+			fmt.Printf("File %s is good \n", path)
 			return nil
 		}
 		if !force && len(existingHeader) < 10 {
@@ -155,13 +196,13 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 				result = append(result, before...)
 				result = append(result, newString)
 				for i := 1; i < diff; i++ {
-					color.Red("added %d", i+1)
 					result = append(result, newString)
 				}
 				result = append(result, after...)
 			} else {
 				result = oldLines
 			}
+
 			for i := 0; i < len(result) && i < len(newLines); i++ {
 				resultLine := strings.TrimSpace(result[i])
 				newLine := strings.TrimSpace(newLines[i])

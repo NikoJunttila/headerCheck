@@ -2,7 +2,7 @@
 *
 * File   : readIgnore.go
 * Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-* 
+*
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
 * All rights reserved.
@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 import (
@@ -56,7 +57,6 @@ func readIgnore(gitOrHg string) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading .gitignore:", err)
 		return
 	}
 	foldersToSkip = append(foldersToSkip, directories...)

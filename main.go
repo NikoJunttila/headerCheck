@@ -2,7 +2,7 @@
 *
 * File   : main.go
 * Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-* 
+*
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
 * All rights reserved.
@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 import (
@@ -18,16 +19,20 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-  "github.com/fatih/color"
+
+	"github.com/fatih/color"
 )
 
 func main() {
 	defaultProjectPath, err := os.Getwd()
 	forceFlagPtr := flag.Bool("force", false, "a bool")
-	authorFlagPtr := flag.String("author", "default", "a string")
-	yearFlagPtr := flag.String("year", "2023", "a string")
+	authorFlagPtr := flag.String("author", "default", "default author if no repo histories")
+	yearFlagPtr := flag.String("year", "2023", "default year if no repo histories")
+	ignoreFolderFlagPtr := flag.String("ignore", "", "ignore folder")
 	flag.Parse()
-
+	if len(*ignoreFolderFlagPtr) > 1 {
+		foldersToSkip = append(foldersToSkip, *ignoreFolderFlagPtr)
+	}
 	fmt.Println("checking files...")
 	dotGitfile := filepath.Join(defaultProjectPath, ".git")
 	_, err = os.Stat(dotGitfile)
@@ -41,7 +46,7 @@ func main() {
 		}
 	} else {
 		fmt.Println("defaulted to mercurial")
-		readIgnore(".hgignore") //idk idk fr fr
+		readIgnore(".hgignore") // idk idk fr fr
 		err = mercuCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)

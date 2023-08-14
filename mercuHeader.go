@@ -2,7 +2,7 @@
 *
 * File   : mercuHeader.go
 * Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-* 
+*
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
 * All rights reserved.
@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 import (
@@ -36,7 +37,6 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			}
 			return nil
 		}
-
 		suffix := filepath.Ext(path)
 		var templateContent string
 		switch {
@@ -91,41 +91,65 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			return err
 		}
 		existingHeader := ""
-
 		maxLines := 18 + len(authors)
+		headerLinesSplit := strings.Split(string(existingContent), "\n")
+		if len(headerLinesSplit) < maxLines {
+			maxLines = len(headerLinesSplit)
+		}
 		switch {
 		case contains(suffix, defaultSuffix):
-			headerLinesSplit := strings.Split(string(existingContent), "\n")
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, "**********************************************************/") {
-					headerStartIndex := strings.Index(string(existingContent), "**********************************************************/")
+				if strings.Contains(
+					line,
+					"**********************************************************/",
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						"**********************************************************/",
+					)
 					if headerStartIndex != -1 {
-						existingHeader = string(existingContent[:headerStartIndex+len("**********************************************************/")])
+						existingHeader = string(
+							existingContent[:headerStartIndex+len("**********************************************************/")],
+						)
 						existingContent = existingContent[headerStartIndex+len("**********************************************************/"):]
 					}
 				}
 			}
 		case contains(suffix, pySuffix):
-			headerLinesSplit := strings.Split(string(existingContent), "\n")
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, `********************************************************"""`) {
-					headerStartIndex := strings.Index(string(existingContent), `********************************************************"""`)
+				if strings.Contains(
+					line,
+					`********************************************************"""`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`********************************************************"""`,
+					)
 					if headerStartIndex != -1 {
-						existingHeader = string(existingContent[:headerStartIndex+len(`********************************************************"""`)])
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`********************************************************"""`)],
+						)
 						existingContent = existingContent[headerStartIndex+len(`********************************************************"""`):]
 					}
 				}
 			}
 		case contains(suffix, htmlSuffix):
-			headerLinesSplit := strings.Split(string(existingContent), "\n")
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, `---------------------------------------------------------->`) {
-					headerStartIndex := strings.Index(string(existingContent), `---------------------------------------------------------->`)
+				if strings.Contains(
+					line,
+					`---------------------------------------------------------->`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`---------------------------------------------------------->`,
+					)
 					if headerStartIndex != -1 {
-						existingHeader = string(existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)])
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`---------------------------------------------------------->`)],
+						)
 						existingContent = existingContent[headerStartIndex+len(`---------------------------------------------------------->`):]
 					}
 				}
@@ -136,9 +160,11 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		}
 
 		if existingHeader == templateContent {
+			fmt.Printf("File %s is good \n", path)
 			return nil
 		}
-
+		color.Red(existingHeader)
+		color.Green(templateContent)
 		if !force && len(existingHeader) < 10 {
 			color.Red("No header found: %s", path)
 			return nil
@@ -159,13 +185,13 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 				result = append(result, before...)
 				result = append(result, newString)
 				for i := 1; i < diff; i++ {
-					color.Red("added %d", i+1)
 					result = append(result, newString)
 				}
 				result = append(result, after...)
 			} else {
 				result = oldLines
 			}
+
 			for i := 0; i < len(result) && i < len(newLines); i++ {
 				resultLine := strings.TrimSpace(result[i])
 				newLine := strings.TrimSpace(newLines[i])
@@ -180,15 +206,17 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			return nil
 		}
 
+		// Combine the new header with the existing content
 		newContent := templateContent + "\n" + string(existingContent)
 
+		// Write the updated content back to the file
 		err = os.WriteFile(path, []byte(newContent), 0644)
 		if err != nil {
 			fmt.Printf("Error writing to file %s: %v\n", path, err)
 			return err
 		}
 
-		fmt.Printf("Copyright header fixed for file: %s\n", path)
+		color.Green("Copyright header fixed for file: %s\n", path)
 		return nil
 	})
 	return err
