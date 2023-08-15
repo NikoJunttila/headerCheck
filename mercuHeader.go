@@ -161,6 +161,8 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 
 		cleanedHeader := strings.ReplaceAll(strings.ReplaceAll(existingHeader, "\r", ""), "\n", "")
 		cleanedtemplateContent := strings.ReplaceAll(strings.ReplaceAll(templateContent, "\r", ""), "\n", "")
+		cleanedHeader = strings.TrimSpace(cleanedHeader)
+		cleanedtemplateContent = strings.TrimSpace(cleanedtemplateContent)
 		if cleanedHeader == cleanedtemplateContent {
 			fmt.Printf("File %s is good \n", path)
 			return nil
