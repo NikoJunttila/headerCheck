@@ -45,7 +45,6 @@ func readIgnore(gitOrHg string) {
 		}
 		info, err := os.Stat(entry)
 		if err != nil {
-			fmt.Println("No .gitignore file", entry)
 			continue
 		}
 

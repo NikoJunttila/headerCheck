@@ -21,7 +21,7 @@ type Template struct {
 
 // add more languages that have /* */ comment out style
 var defaultSuffix = []string{".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts",
-	".cs", ".java", ".rs", ".qlm", ".css", ".qss"}
+	".cs", ".java", ".rs", ".qlm", ".css", ".qss",".scala",".kt"}
 
 // add more languages that have """ """ python style comment out style
 var pySuffix = []string{".py"}
