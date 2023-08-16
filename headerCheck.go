@@ -178,39 +178,9 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			color.Red("file %s needs fix \n  \n", path)
 			oldLines := strings.Split(existingHeader, "\n")
 			newLines := strings.Split(templateContent, "\n")
-			diff := len(newLines) - len(oldLines)
-			insertLen := len(oldLines) - 13
-			var result []string
-			if diff > 0 {
-				newString := "*"
-
-				insertIndex := 5 + insertLen
-				before := oldLines[:insertIndex]
-				after := oldLines[insertIndex:]
-				result = append(result, before...)
-				result = append(result, newString)
-				for i := 1; i < diff; i++ {
-					result = append(result, newString)
-				}
-				result = append(result, after...)
-			} else {
-				result = oldLines
-			}
-			//compare all lines of both templates and show difference
-			for i := 0; i < len(result) && i < len(newLines); i++ {
-				resultLine := strings.TrimSpace(result[i])
-				newLine := strings.TrimSpace(newLines[i])
-				resultLine = strings.ToLower(resultLine)
-				newLine = strings.ToLower(newLine)
-				if resultLine != newLine {
-					color.Red("Line: %d - %s", i+1, result[i])
-					color.Green("Line: %d + %s", i+1, newLines[i])
-					fmt.Println()
-				}
-			}
+      showDifferences(newLines, oldLines)
 			return nil
 		}
-
 		// Combine the new header with the existing content
 		newContent := templateContent + "\n" + string(existingContent)
 
