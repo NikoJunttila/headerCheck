@@ -16,6 +16,7 @@ package main
 
 import (
 	"sort"
+  "strings"
 )
 
 func deduplicateAndSort(input []string) []string {
@@ -47,3 +48,9 @@ func contains(v string, a []string) bool {
     }
     return false
 }
+func cleanString(needsCleaning string) string{
+    needsCleaning = strings.ReplaceAll(strings.ReplaceAll(needsCleaning, "\r", ""), "\n", "")
+		needsCleaning = strings.TrimSpace(needsCleaning)
+  return needsCleaning
+}
+

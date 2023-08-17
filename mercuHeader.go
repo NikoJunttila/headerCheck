@@ -49,8 +49,18 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		default:
 			return nil
 		}
-		filename := filepath.Base(path)
-		filenameModded := "'" + filename + "'"
+
+
+    relative, err := filepath.Rel(rootDir, path) 
+    fmt.Println(relative)
+    if err != nil {
+      fmt.Println("error with relative path")
+      return err
+    }
+		// filename := filepath.Base(path)
+		filenameModded := "'" + relative + "'"
+
+
 
 		var trimmedYearRange string
 		cmd := exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
@@ -158,57 +168,23 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			fmt.Println("error no suffix found")
 			return nil
 		}
-
-		cleanedHeader := strings.ReplaceAll(strings.ReplaceAll(existingHeader, "\r", ""), "\n", "")
-		cleanedtemplateContent := strings.ReplaceAll(strings.ReplaceAll(templateContent, "\r", ""), "\n", "")
-		cleanedHeader = strings.TrimSpace(cleanedHeader)
-		cleanedtemplateContent = strings.TrimSpace(cleanedtemplateContent)
+  	cleanedHeader := cleanString(existingHeader) 
+		cleanedtemplateContent := cleanString(templateContent)
 		if cleanedHeader == cleanedtemplateContent {
 			fmt.Printf("File %s is good \n", path)
 			return nil
 		}
-
 		if !force && len(existingHeader) < 10 {
-			color.Red("No header found: %s", path)
+			color.Red("No header found: %s \n", path)
 			return nil
 		}
 		if !force {
 			color.Red("file %s needs fix \n  \n", path)
 			oldLines := strings.Split(existingHeader, "\n")
 			newLines := strings.Split(templateContent, "\n")
-			diff := len(newLines) - len(oldLines)
-			insertLen := len(oldLines) - 13
-			var result []string
-			if diff > 0 {
-				newString := "*"
-
-				insertIndex := 5 + insertLen
-				before := oldLines[:insertIndex]
-				after := oldLines[insertIndex:]
-				result = append(result, before...)
-				result = append(result, newString)
-				for i := 1; i < diff; i++ {
-					result = append(result, newString)
-				}
-				result = append(result, after...)
-			} else {
-				result = oldLines
-			}
-
-			for i := 0; i < len(result) && i < len(newLines); i++ {
-				resultLine := strings.TrimSpace(result[i])
-				newLine := strings.TrimSpace(newLines[i])
-				resultLine = strings.ToLower(resultLine)
-				newLine = strings.ToLower(newLine)
-				if resultLine != newLine {
-					color.Red("Line: %d - %s", i+1, result[i])
-					color.Green("Line: %d + %s", i+1, newLines[i])
-					fmt.Println()
-				}
-			}
+      showDifferences(newLines, oldLines)
 			return nil
 		}
-
 		// Combine the new header with the existing content
 		newContent := templateContent + "\n" + string(existingContent)
 
