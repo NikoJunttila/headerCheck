@@ -50,17 +50,12 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			return nil
 		}
 
-
     relative, err := filepath.Rel(rootDir, path) 
-    fmt.Println(relative)
     if err != nil {
       fmt.Println("error with relative path")
       return err
     }
-		// filename := filepath.Base(path)
 		filenameModded := "'" + relative + "'"
-
-
 
 		var trimmedYearRange string
 		cmd := exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
