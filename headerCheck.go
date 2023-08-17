@@ -162,10 +162,8 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			fmt.Println("error no suffix found")
 			return nil
 		}
-		cleanedHeader := strings.ReplaceAll(strings.ReplaceAll(existingHeader, "\r", ""), "\n", "")
-		cleanedtemplateContent := strings.ReplaceAll(strings.ReplaceAll(templateContent, "\r", ""), "\n", "")
-		cleanedHeader = strings.TrimSpace(cleanedHeader)
-		cleanedtemplateContent = strings.TrimSpace(cleanedtemplateContent)
+		cleanedHeader := cleanString(existingHeader) 
+		cleanedtemplateContent := cleanString(templateContent)
 		if cleanedHeader == cleanedtemplateContent {
 			fmt.Printf("File %s is good \n", path)
 			return nil
