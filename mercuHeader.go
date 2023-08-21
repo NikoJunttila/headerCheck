@@ -1,7 +1,8 @@
 /****************************************************************
 *
 * File   : mercuHeader.go
-* Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+* Author : Niko Junttila <niko.junttila2@centria.fi>
+*          NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
 *
 *
 * Copyright (C) 2023 Centria University of Applied Sciences.
@@ -11,6 +12,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 
 package main
 
@@ -166,7 +168,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
   	cleanedHeader := cleanString(existingHeader) 
 		cleanedtemplateContent := cleanString(templateContent)
 		if cleanedHeader == cleanedtemplateContent {
-			fmt.Printf("File %s is good \n", path)
+			fmt.Printf("File %s is correct \n", path)
 			return nil
 		}
 		if !force && len(existingHeader) < 10 {

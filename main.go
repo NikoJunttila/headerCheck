@@ -11,7 +11,6 @@
 * prohibited.
 *
 ****************************************************************/
-
 package main
 
 import (
@@ -37,7 +36,6 @@ func main() {
 	dotGitfile := filepath.Join(defaultProjectPath, ".git")
 	_, err = os.Stat(dotGitfile)
 	if err == nil {
-		color.Green("found .git")
 		readIgnore(".gitignore")
 		err = gitCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
