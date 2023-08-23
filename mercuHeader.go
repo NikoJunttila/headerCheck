@@ -32,7 +32,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		if err != nil {
 			return err
 		}
-
+    // check if folder or file should be skipped
 		if shouldSkipDirOrFile(info.Name(), info.IsDir()) {
 			if info.IsDir() {
 				return filepath.SkipDir
@@ -41,6 +41,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		}
 		suffix := filepath.Ext(path)
 		var templateContent string
+    // get correct template for this suffix
 		switch {
 		case contains(suffix, defaultSuffix):
 			templateContent = templates[0].Header
@@ -63,7 +64,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		cmd := exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("Error running 'hg log' command for file %s: %v\nOutput: %s\n", path, err, output)
+		//fmt.Printf("Error running 'hg log' command for file %s: %v\nOutput: %s\n", path, err, output)
 			trimmedYearRange = yearFlag
 		} else {
 			commitDates := strings.Fields(string(output))
@@ -109,7 +110,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 				line := headerLinesSplit[i]
 				if strings.Contains(
 					line,
-					"**********************************************************/",
+					"*******************************************************/",
 				) {
 					headerStartIndex := strings.Index(
 						string(existingContent),
@@ -128,7 +129,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 				line := headerLinesSplit[i]
 				if strings.Contains(
 					line,
-					`********************************************************"""`,
+					`****************************************************"""`,
 				) {
 					headerStartIndex := strings.Index(
 						string(existingContent),
@@ -147,7 +148,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 				line := headerLinesSplit[i]
 				if strings.Contains(
 					line,
-					`---------------------------------------------------------->`,
+					`------------------------------------------------------->`,
 				) {
 					headerStartIndex := strings.Index(
 						string(existingContent),

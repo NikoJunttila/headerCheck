@@ -24,6 +24,7 @@ var foldersToSkip = []string{
 var filesToSkip = []string{}
 
 func shouldSkipDirOrFile(name string, isDir bool) bool {
+  filesToSkip = foldersToSkip
 	if isDir {
 		for _, folder := range foldersToSkip {
 			if name == folder {

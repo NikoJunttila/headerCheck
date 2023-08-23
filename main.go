@@ -11,6 +11,7 @@
 * prohibited.
 *
 ****************************************************************/
+
 package main
 
 import (
@@ -18,34 +19,44 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+  "strings"
 
 	"github.com/fatih/color"
 )
 
 func main() {
+
+  var suffixes string
+
 	defaultProjectPath, err := os.Getwd()
 	forceFlagPtr := flag.Bool("force", false, "a bool")
+	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore")
+  flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes")
+
 	authorFlagPtr := flag.String("author", "default", "default author if no repo histories")
 	yearFlagPtr := flag.String("year", "2023", "default year if no repo histories")
-	ignoreFolderFlagPtr := flag.String("ignore", "", "ignore folder")
-	flag.Parse()
-	if len(*ignoreFolderFlagPtr) > 1 {
-		foldersToSkip = append(foldersToSkip, *ignoreFolderFlagPtr)
-	}
-	fmt.Println("checking files...")
-	dotGitfile := filepath.Join(defaultProjectPath, ".git")
+  forceVsc := flag.String("vsc", "", "force version control if no .git file")
+
+  flag.Parse()
+
+  suffixArray := strings.Split(suffixes, ",")
+	
+  fmt.Println("checking files...")
+  //checks for .hg file if not found errors and defaults to mercurial
+	dotGitfile := filepath.Join(defaultProjectPath, ".hg")
 	_, err = os.Stat(dotGitfile)
-	if err == nil {
-		readIgnore(".gitignore")
-		err = gitCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
+	if err == nil || *forceVsc == "hg" {
+    fmt.Println("using hg")
+		readIgnore(".hgignore") 
+		err = mercuCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	} else {
-		fmt.Println("defaulted to mercurial")
-		readIgnore(".hgignore") // idk idk fr fr
-		err = mercuCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr)
+		fmt.Println("using git")
+		readIgnore(".gitignore")
+		err = gitCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -57,4 +68,16 @@ func main() {
 		color.Red("Error scanning project: %v\n", err)
 		os.Exit(1)
 	}
+}
+//ignore folders stuff
+type stringSliceFlag []string
+
+
+func (ssf *stringSliceFlag) String() string {
+    return strings.Join(*ssf, ", ")
+}
+
+func (ssf *stringSliceFlag) Set(value string) error {
+    *ssf = append(*ssf, value)
+    return nil
 }

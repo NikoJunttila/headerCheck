@@ -11,10 +11,8 @@
 * prohibited.
 *
 ****************************************************************/
-
-
-
 package main
+
 
 type Template struct {
 	Suffix string
@@ -23,7 +21,7 @@ type Template struct {
 
 // add more languages that have /* */ comment out style
 var defaultSuffix = []string{".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts",
-	".cs", ".java", ".rs", ".qlm", ".css", ".qss",".scala",".kt"}
+	".cs", ".java", ".rs", ".qml", ".css", ".qss",".scala",".kt"}
 
 // add more languages that have """ """ python style comment out style
 var pySuffix = []string{".py"}
@@ -31,44 +29,42 @@ var pySuffix = []string{".py"}
 // add more languages that have <-- --> html style comment out style
 var htmlSuffix = []string{".html"}
 
+// templates
 var templates = []Template{
 	{"default", `/****************************************************************
-*
-* File   : {FILENAME}
-* Author : {AUTHOR}
-*
-*
-* Copyright (C) {YEARS} Centria University of Applied Sciences.
-* All rights reserved.
-*
-* Unauthorized copying of this file, via any medium is strictly
-* prohibited.
-*
-****************************************************************/`},
+ *
+ *  File   : {FILENAME}
+ *  Author : {AUTHOR}
+ *
+ *  Copyright (C) {YEARS} Centria University of Applied Sciences.
+ *  All rights reserved.
+ *
+ *  Unauthorized copying of this file, via any medium is strictly
+ *  prohibited.
+ *
+ ****************************************************************/`},
 	{".py", `"""*************************************************************
-*
-* File   : {FILENAME}
-* Author : {AUTHOR}
-*
-*
-* Copyright (C) {YEARS} Centria University of Applied Sciences.
-* All rights reserved.
-*
-* Unauthorized copying of this file, via any medium is strictly
-* prohibited.
-*
-*************************************************************"""`},
+ *
+ * File   : {FILENAME}
+ * Author : {AUTHOR}
+ *
+ * Copyright (C) {YEARS} Centria University of Applied Sciences.
+ * All rights reserved.
+ *
+ * Unauthorized copying of this file, via any medium is strictly
+ * prohibited.
+ *
+ *************************************************************"""`},
 	{".html", `<!--------------------------------------------------------------
-*
-* File   : {FILENAME}
-* Author : {AUTHOR}
-*
-*
-* Copyright (C) {YEARS} Centria University of Applied Sciences.
-* All rights reserved.
-*
-* Unauthorized copying of this file, via any medium is strictly
-* prohibited.
-*
---------------------------------------------------------------->`},
+ *
+ * File   : {FILENAME}
+ * Author : {AUTHOR}
+ *
+ * Copyright (C) {YEARS} Centria University of Applied Sciences.
+ * All rights reserved.
+ *
+ * Unauthorized copying of this file, via any medium is strictly
+ * prohibited.
+ *
+ --------------------------------------------------------------->`},
 }

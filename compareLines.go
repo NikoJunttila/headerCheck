@@ -19,18 +19,22 @@ package main
 import (
 	"fmt"
 	"strings"
+  "errors"
 
 	"github.com/fatih/color"
 )
 
-func showDifferences(newLines []string, oldLines []string) {
+func showDifferences(newLines []string, oldLines []string) error {
 	diff := len(newLines) - len(oldLines)
-	insertLen := len(oldLines) - 13
+	insertLen := len(oldLines) - 12
 	var result []string
 	if diff > 0 {
 		newString := "*"
 
 		insertIndex := 5 + insertLen
+    if insertIndex < 4{
+      return errors.New("header messed up")
+    }
 		before := oldLines[:insertIndex]
 		after := oldLines[insertIndex:]
 		result = append(result, before...)
@@ -54,4 +58,5 @@ func showDifferences(newLines []string, oldLines []string) {
 			fmt.Println()
 		}
 	}
+      return nil
 }
