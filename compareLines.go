@@ -1,40 +1,40 @@
 /****************************************************************
-*
-* File   : compareLines.go
-* Author : Niko Junttila <niko.junttila2@centria.fi>
-*          NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-*
-*
-* Copyright (C) 2023 Centria University of Applied Sciences.
-* All rights reserved.
-*
-* Unauthorized copying of this file, via any medium is strictly
-* prohibited.
-*
-****************************************************************/
+ *
+ *  File   : compareLines.go
+ *  Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+ *           Niko Junttila <niko.junttila2@centria.fi>
+ *
+ *  Copyright (C) 2023 Centria University of Applied Sciences.
+ *  All rights reserved.
+ *
+ *  Unauthorized copying of this file, via any medium is strictly
+ *  prohibited.
+ *
+ ****************************************************************/
 
 
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-  "errors"
 
 	"github.com/fatih/color"
 )
 
-func showDifferences(newLines []string, oldLines []string) error {
+func showDifferences(newLines []string, oldLines []string, lines int) error {
 	diff := len(newLines) - len(oldLines)
-	insertLen := len(oldLines) - 12
+	insertLen := len(oldLines) - lines
 	var result []string
 	if diff > 0 {
 		newString := "*"
-
-		insertIndex := 5 + insertLen
-    if insertIndex < 4{
-      return errors.New("header messed up")
-    }
+		//append * to old header so checking lines stays even at index 5 + authors???
+		// modify hardcoded 5 to suit new template if changing author position
+    insertIndex := 5 + insertLen
+		if insertIndex < 1 {
+			return errors.New("header messed up")
+		}
 		before := oldLines[:insertIndex]
 		after := oldLines[insertIndex:]
 		result = append(result, before...)
@@ -58,5 +58,5 @@ func showDifferences(newLines []string, oldLines []string) error {
 			fmt.Println()
 		}
 	}
-      return nil
+	return nil
 }

@@ -1,16 +1,16 @@
 /****************************************************************
-*
-* File   : skipDirs.go
-* Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
-*
-*
-* Copyright (C) 2023 Centria University of Applied Sciences.
-* All rights reserved.
-*
-* Unauthorized copying of this file, via any medium is strictly
-* prohibited.
-*
-****************************************************************/
+ *
+ *  File   : skipDirs.go
+ *  Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+ *
+ *  Copyright (C) 2023 Centria University of Applied Sciences.
+ *  All rights reserved.
+ *
+ *  Unauthorized copying of this file, via any medium is strictly
+ *  prohibited.
+ *
+ ****************************************************************/
+
 
 package main
 
@@ -24,7 +24,7 @@ var foldersToSkip = []string{
 var filesToSkip = []string{}
 
 func shouldSkipDirOrFile(name string, isDir bool) bool {
-  filesToSkip = foldersToSkip
+  filesToSkip = append(filesToSkip, foldersToSkip...)
 	if isDir {
 		for _, folder := range foldersToSkip {
 			if name == folder {
