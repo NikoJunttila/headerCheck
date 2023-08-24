@@ -15,6 +15,7 @@ package main
 
 import (
   "strings"
+  "sort"
 )
 
 func deduplicateAndSort(input []string) []string {
@@ -29,6 +30,7 @@ func deduplicateAndSort(input []string) []string {
 	return uniqueList
 }
 func formatYearRange(years []string) string {
+  sort.Strings(years)
 	if len(years) == 0 {
 		return ""
 	} else if len(years) == 1 {

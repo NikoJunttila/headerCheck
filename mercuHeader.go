@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+  "sort"
 
 	"github.com/fatih/color"
 )
@@ -60,14 +61,14 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		default:
 			return nil
 		}
-		relative, err := filepath.Rel(rootDir, path)
-		if err != nil {
-			fmt.Println("error with relative path")
-			return err
-		}
+		// relative, err := filepath.Rel(rootDir, path)
+		// if err != nil {
+		// 	fmt.Println("error with relative path")
+		// 	return err
+		// }
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
-
-		filenameModded := "'" + relative + "'"
+    fileName := filepath.Base(path)
+		filenameModded := "'" + fileName + "'"
 		var trimmedYearRange string
 		cmd := exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
 		dir := filepath.Dir(path)
@@ -97,6 +98,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			trimmedAuthorList = authorFlag
 		} else {
 			authors = deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+      sort.Sort(sort.Reverse(sort.StringSlice(authors)))
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
