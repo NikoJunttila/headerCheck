@@ -27,8 +27,13 @@ import (
 	"github.com/fatih/color"
 )
 
-func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag string, suffixArr []string) error {
-	err := filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
+func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []string) error {
+		rootDir, err := os.Getwd()
+  if err != nil {
+    return err
+  }
+
+  err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -83,7 +88,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			for _, date := range commitDates {
 				years = append(years, date[:4])
 			}
-			years = deduplicateAndSort(years)
+			years = getUniques(years)
 			yearRange := formatYearRange(years)
 			trimmedYearRange = strings.ReplaceAll(yearRange, `"`, "")
 		}
@@ -97,7 +102,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 			fmt.Printf("Error running 'hg log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
 			trimmedAuthorList = authorFlag
 		} else {
-			authors = deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
       sort.Sort(sort.Reverse(sort.StringSlice(authors)))
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
@@ -192,7 +197,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 		}
 		//compare lines and show difference
 		oldLines := strings.Split(existingHeader, "\n")
-		newLines := strings.Split(templateContent, "\n")
+		// newLines := strings.Split(templateContent, "\n")
 		if !force {
 			// if previosly found header but the header is smaller than template we assume it was not correct header
 			if len(oldLines) < templateLinesLen {
@@ -200,7 +205,7 @@ func mercuCheckHeader(rootDir string, force bool, yearFlag string, authorFlag st
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-			err = showDifferences(newLines, oldLines, templateLinesLen)
+			// err = showDifferences(newLines, oldLines, templateLinesLen)
 			if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
 			}

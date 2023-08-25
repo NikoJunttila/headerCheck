@@ -2,6 +2,7 @@
  *
  *  File   : main.go
  *  Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+ *           Niko Junttila <niko.junttila2@centria.fi>
  *
  *  Copyright (C) 2023 Centria University of Applied Sciences.
  *  All rights reserved.
@@ -10,6 +11,7 @@
  *  prohibited.
  *
  ****************************************************************/
+
 
 package main
 
@@ -30,8 +32,9 @@ func main() {
 	defaultProjectPath, err := os.Getwd()
 	forceFlagPtr := flag.Bool("force", false, "actually fix files instead of just showing whats wrong")
 	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='node_modules'")
-	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes -suffix='.js,.cpp,.py'")
-
+	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
+  
+  newSufPtr := flag.String("newSuf", "", "Add new default suffix if not already included -newSuf='.elixir'")
 	authorFlagPtr := flag.String("author", "default", "default author if no repo histories")
 	yearFlagPtr := flag.String("year", "2023", "default year if no repo histories")
 	forceVsc := flag.String("vsc", "", "force version control if no .hg file -vsc='hg'")
@@ -44,6 +47,10 @@ func main() {
       os.Exit(0)
     }
 
+  if len(*newSufPtr) > 1{
+  defaultSuffix = append(defaultSuffix, *newSufPtr)
+  }
+
 	suffixArray := strings.Split(suffixes, ",")    
 	fmt.Println("checking files...")
 	//checks for .hg file if not found errors and defaults to mercurial
@@ -52,7 +59,7 @@ func main() {
 	if err == nil || *forceVsc == "hg" {
 		fmt.Println("using hg")
 		readIgnore(".hgignore")
-		err = mercuCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
+		err = mercuCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
 		if err != nil {
 			fmt.Println(err)
 			return

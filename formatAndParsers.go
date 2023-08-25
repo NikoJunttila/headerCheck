@@ -1,8 +1,8 @@
 /****************************************************************
  *
  *  File   : formatAndParsers.go
- *  Author : Niko Junttila <niko.junttila2@centria.fi>
- *           NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+ *  Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
+ *           Niko Junttila <niko.junttila2@centria.fi>
  *
  *  Copyright (C) 2023 Centria University of Applied Sciences.
  *  All rights reserved.
@@ -11,24 +11,24 @@
  *  prohibited.
  *
  ****************************************************************/
+
 package main
 
 import (
-  "strings"
-  "sort"
+	"sort"
+	"strings"
 )
 
-func deduplicateAndSort(input []string) []string {
-	uniqueMap := make(map[string]bool)
-	for _, v := range input {
-		uniqueMap[v] = true
-	}
-	var uniqueList []string
-	for k := range uniqueMap {
-		uniqueList = append(uniqueList, k)
-	}
-	return uniqueList
+func getUniques(slice []string) []string{
+  var uniques []string
+  for _,name := range slice{
+    if !contains(name, uniques){
+    uniques = append(uniques, name)
+    }
+  }
+  return uniques
 }
+
 func formatYearRange(years []string) string {
   sort.Strings(years)
 	if len(years) == 0 {

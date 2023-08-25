@@ -23,7 +23,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func showDifferences(newLines []string, oldLines []string, lines int) error {
+func showDifferences(newLines []string, oldLines []string, lines int, authInsert int) error {
 	diff := len(newLines) - len(oldLines)
 	insertLen := len(oldLines) - lines
 	var result []string
@@ -31,7 +31,7 @@ func showDifferences(newLines []string, oldLines []string, lines int) error {
 		newString := "*"
 		//append * to old header so checking lines stays even at index 5 + authors???
 		// modify hardcoded 5 to suit new template if changing author position
-    insertIndex := 5 + insertLen
+    insertIndex := authInsert + insertLen
 		if insertIndex < 1 {
 			return errors.New("header messed up")
 		}

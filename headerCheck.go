@@ -31,6 +31,23 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
   if err != nil {
     return err
   }
+    authIndex := 5
+    var templateContentBody string
+    customTempPath := "template.txt"
+		customTemplate, err := os.ReadFile(customTempPath)
+		if err != nil {
+			fmt.Printf("Error finding custom template. Using default %s: %v\n", customTempPath, err)
+      templateContentBody = template
+		} else {
+      templateContentBody = strings.TrimRight(string(customTemplate), "\n")
+	      for i, element := range templateContentBody {
+		      if strings.Contains(string(element), "{author}") {
+			      authIndex = i + 2
+			      break
+		    }
+	    }
+    }
+    
   err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -53,28 +70,23 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 		}
 
 		var templateContent string
-    templateContentBody := templates[0].Header
 		//get correct template for this suffix
 		switch {
 		case contains(suffix, defaultSuffix):
       templateContent = "/****************************************************************\n" + templateContentBody + "****************************************************************/"
-      // templateContent = templateContent +"****************************************************************/"		
     case contains(suffix, pySuffix):
-      templateContent = `"""*************************************************************` + "\n"+ templateContentBody 
-      templateContent = templateContent  + `*************************************************************"""`		
+      templateContent = `"""*************************************************************` + "\n"+ templateContentBody + `**********************************************************"""`
 		case contains(suffix, htmlSuffix):
-      templateContent = "<!--------------------------------------------------------------\n" + templateContentBody 
-      templateContent = templateContent +"--------------------------------------------------------------->"		
+      templateContent = "<!--------------------------------------------------------------\n" + templateContentBody + "--------------------------------------------------------------->" 
     case suffix == ".rb":
-      templateContent = "=begin *************************************" + "\n"+ templateContentBody + "************************************ =end"
+      templateContent = "=begin *********************************************************" + "\n"+ templateContentBody + "******************************************************* =end"
     case suffix == ".lua":
-      templateContent = "--[[*******************************************" + "\n"+ templateContentBody + "************************************************]]"
+      templateContent = "--[[************************************************************" + "\n"+ templateContentBody + "**********************************************************]]"
     default:
 			return nil
 		}
 
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
-
 		// Retrieve the commit dates of the file using the "git log" command
 		var trimmedYearRange string
 		cmd := exec.Command(
@@ -98,7 +110,7 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 			for _, date := range commitDates {
 				years = append(years, date[:5])
 			}
-			years = deduplicateAndSort(years)
+			years = getUniques(years)
 			yearRange := formatYearRange(years)
 			trimmedYearRange = strings.ReplaceAll(yearRange, `"`, "")
 		}
@@ -121,7 +133,7 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 			fmt.Printf("Error running 'git log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
 			trimmedAuthorList = authorFlag
 		} else {
-			authors = deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
@@ -263,7 +275,7 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-			err = showDifferences(newLines, oldLines, templateLinesLen)
+			err = showDifferences(newLines, oldLines, templateLinesLen,authIndex)
 			if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
 			}
