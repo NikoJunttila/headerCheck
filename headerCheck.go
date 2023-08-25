@@ -26,8 +26,29 @@ import (
 	"github.com/fatih/color"
 )
 
-func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag string, suffixArr []string) error {
-	err := filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
+func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []string) error {
+	rootDir, err := os.Getwd()
+  if err != nil {
+    return err
+  }
+    authIndex := 5
+    var templateContentBody string
+    customTempPath := "template.txt"
+		customTemplate, err := os.ReadFile(customTempPath)
+		if err != nil {
+			fmt.Printf("Error finding custom template. Using default %s: %v\n", customTempPath, err)
+      templateContentBody = template
+		} else {
+      templateContentBody = strings.TrimRight(string(customTemplate), "\n")
+	      for i, element := range templateContentBody {
+		      if strings.Contains(string(element), "{author}") {
+			      authIndex = i + 2
+			      break
+		    }
+	    }
+    }
+    
+  err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -52,17 +73,20 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		//get correct template for this suffix
 		switch {
 		case contains(suffix, defaultSuffix):
-			templateContent = templates[0].Header
-		case contains(suffix, pySuffix):
-			templateContent = templates[1].Header
+      templateContent = "/****************************************************************\n" + templateContentBody + "****************************************************************/"
+    case contains(suffix, pySuffix):
+      templateContent = `"""*************************************************************` + "\n"+ templateContentBody + `**********************************************************"""`
 		case contains(suffix, htmlSuffix):
-			templateContent = templates[2].Header
-		default:
+      templateContent = "<!--------------------------------------------------------------\n" + templateContentBody + "--------------------------------------------------------------->" 
+    case suffix == ".rb":
+      templateContent = "=begin *********************************************************" + "\n"+ templateContentBody + "******************************************************* =end"
+    case suffix == ".lua":
+      templateContent = "--[[************************************************************" + "\n"+ templateContentBody + "**********************************************************]]"
+    default:
 			return nil
 		}
 
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
-
 		// Retrieve the commit dates of the file using the "git log" command
 		var trimmedYearRange string
 		cmd := exec.Command(
@@ -86,7 +110,7 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			for _, date := range commitDates {
 				years = append(years, date[:5])
 			}
-			years = deduplicateAndSort(years)
+			years = getUniques(years)
 			yearRange := formatYearRange(years)
 			trimmedYearRange = strings.ReplaceAll(yearRange, `"`, "")
 		}
@@ -109,7 +133,7 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 			fmt.Printf("Error running 'git log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
 			trimmedAuthorList = authorFlag
 		} else {
-			authors = deduplicateAndSort(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
@@ -186,6 +210,46 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 					}
 				}
 			}
+		case suffix == ".rb":
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(
+					line,
+      `************************************ =end`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+            `************************************ =end`,
+					)
+					if headerStartIndex != -1 {
+						existingHeader = string(
+    existingContent[:headerStartIndex+len(`************************************ =end`)],
+						)
+						existingContent = existingContent[headerStartIndex+len(`************************************ =end`):]
+						break
+					}
+				}
+			}
+		case suffix == ".lua":
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(
+					line,
+      `************************************************]]`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+            `************************************************]]`,
+					)
+					if headerStartIndex != -1 {
+						existingHeader = string(
+    existingContent[:headerStartIndex+len(`************************************************]]`)],
+						)
+						existingContent = existingContent[headerStartIndex+len(`************************************************]]`):]
+						break
+					}
+				}
+			}
 		default:
 			fmt.Println("error no suffix found")
 			return nil
@@ -207,11 +271,11 @@ func gitCheckHeader(rootDir string, force bool, yearFlag string, authorFlag stri
 		if !force {
 			// if previosly found header but the header is smaller than template we assume it was not correct header
 			if len(oldLines) < templateLinesLen {
-				color.Red("No centria copyright header found: %s \n!\n", path)
+				color.Red("No centria copyright header found: %s \n!\n! \n", path)
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-			err = showDifferences(newLines, oldLines, templateLinesLen)
+			err = showDifferences(newLines, oldLines, templateLinesLen,authIndex)
 			if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
 			}
