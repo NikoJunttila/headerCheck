@@ -30,8 +30,8 @@ var htmlSuffix = []string{".html"}
 
 // templates
 var templates = []Template{
-	{"default", `/****************************************************************
- *
+	{"default", 
+` *
  *  File   : {FILENAME}
  *  Author : {AUTHOR}
  *
@@ -41,7 +41,7 @@ var templates = []Template{
  *  Unauthorized copying of this file, via any medium is strictly
  *  prohibited.
  *
- ****************************************************************/`},
+ `},
 	{".py", `"""*************************************************************
  *
  * File   : {FILENAME}

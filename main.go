@@ -60,7 +60,7 @@ func main() {
 	} else {
 		fmt.Println("using git")
 		readIgnore(".gitignore")
-		err = gitCheckHeader(defaultProjectPath, *forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
+		err = gitCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
 		if err != nil {
 			fmt.Println(err)
 			return
