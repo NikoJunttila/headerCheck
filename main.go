@@ -11,8 +11,6 @@
  *  prohibited.
  *
  ****************************************************************/
-
-
 package main
 
 import (
@@ -28,21 +26,30 @@ import (
 func main() {
 
 	var suffixes string
+  var flagTemp string
 
 	defaultProjectPath, err := os.Getwd()
 	forceFlagPtr := flag.Bool("force", false, "actually fix files instead of just showing whats wrong")
 	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='node_modules'")
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
   
+	flag.StringVar(&flagTemp, "template", "", "custom template location")
+
   newSufPtr := flag.String("newSuf", "", "Add new default suffix if not already included -newSuf='.elixir'")
 	authorFlagPtr := flag.String("author", "default", "default author if no repo histories")
 	yearFlagPtr := flag.String("year", "2023", "default year if no repo histories")
 	forceVsc := flag.String("vsc", "", "force version control if no .hg file -vsc='hg'")
 
+  helpFlag := flag.Bool("usage", false, "Show help message")
+ 
 	flag.Parse()
-
-  helpFlag := flag.Bool("help", false, "Show help message")
+  
   if *helpFlag {
+    exePath, _ := os.Executable()
+    if err != nil {
+      fmt.Println("no global exe??")
+    }
+      color.Red("global Executable location: %s \n", exePath)
       printUsage()
       os.Exit(0)
     }
@@ -83,12 +90,12 @@ func main() {
 
 
 func printUsage() {
-    fmt.Println("Usage:")
-    fmt.Println("  myprogram [options]")
-    fmt.Println("\nOptions:")
-    flag.VisitAll(func(f *flag.Flag) {
-        fmt.Printf("  -%s %s (default %v)\n", f.Name, f.Usage, f.DefValue)
-    })
+     fmt.Println("Usage:")
+     fmt.Println("  headerCheck [options]")
+     fmt.Println("\nOptions:")
+     flag.VisitAll(func(f *flag.Flag) {
+       fmt.Printf("  -%s: %s (default: %v)\n", f.Name, f.Usage, f.DefValue)
+     })
 }
 
 // ignore folders/files stuff

@@ -11,7 +11,6 @@
  *  prohibited.
  *
  ****************************************************************/
-
 package main
 
 import (
@@ -28,27 +27,39 @@ import (
 
 func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []string) error {
 	rootDir, err := os.Getwd()
-  if err != nil {
-    return err
-  }
-    authIndex := 5
-    var templateContentBody string
-    customTempPath := "template.txt"
-		customTemplate, err := os.ReadFile(customTempPath)
-		if err != nil {
-			fmt.Printf("Error finding custom template. Using default %s: %v\n", customTempPath, err)
-      templateContentBody = template
-		} else {
-      templateContentBody = strings.TrimRight(string(customTemplate), "\n")
-	      for i, element := range templateContentBody {
-		      if strings.Contains(string(element), "{author}") {
-			      authIndex = i + 2
-			      break
-		    }
-	    }
-    }
-    
-  err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
+	if err != nil {
+		return err
+	}
+	authIndex := 5
+	var templateContentBody string
+
+	check1, flagTemp := flagTemplate()
+	check2, gwdTemp := getGwdTemplate()
+	check3, globalTemp := getGlobalTemplate()
+
+	if check1 {
+		fmt.Println("Using given template")
+		templateContentBody = flagTemp
+	} else if check2 {
+		fmt.Println("Using template in directory")	
+		templateContentBody = gwdTemp
+	} else if check3 {
+		fmt.Println("Using global template")
+		templateContentBody = globalTemp
+	} else {
+    fmt.Println("Using default hardcoded template")
+		templateContentBody = template
+	}    
+
+  templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
+  for i, element := range templateContentBodyAuthorIndexCheck {
+		if strings.Contains(string(element), "{AUTHOR}") {
+			authIndex = i + 2
+			break
+		}
+	}
+
+	err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -73,16 +84,16 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 		//get correct template for this suffix
 		switch {
 		case contains(suffix, defaultSuffix):
-      templateContent = "/****************************************************************\n" + templateContentBody + "****************************************************************/"
-    case contains(suffix, pySuffix):
-      templateContent = `"""*************************************************************` + "\n"+ templateContentBody + `**********************************************************"""`
+			templateContent = "/****************************************************************\n" + templateContentBody + "****************************************************************/"
+		case contains(suffix, pySuffix):
+			templateContent = `"""*************************************************************` + "\n" + templateContentBody + `**********************************************************"""`
 		case contains(suffix, htmlSuffix):
-      templateContent = "<!--------------------------------------------------------------\n" + templateContentBody + "--------------------------------------------------------------->" 
-    case suffix == ".rb":
-      templateContent = "=begin *********************************************************" + "\n"+ templateContentBody + "******************************************************* =end"
-    case suffix == ".lua":
-      templateContent = "--[[************************************************************" + "\n"+ templateContentBody + "**********************************************************]]"
-    default:
+			templateContent = "<!--------------------------------------------------------------\n" + templateContentBody + "--------------------------------------------------------------->"
+		case suffix == ".rb":
+			templateContent = "=begin *********************************************************" + "\n" + templateContentBody + "******************************************************* =end"
+		case suffix == ".lua":
+			templateContent = "--[[************************************************************" + "\n" + templateContentBody + "**********************************************************]]"
+		default:
 			return nil
 		}
 
@@ -215,15 +226,15 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 				line := headerLinesSplit[i]
 				if strings.Contains(
 					line,
-      `************************************ =end`,
+					`************************************ =end`,
 				) {
 					headerStartIndex := strings.Index(
 						string(existingContent),
-            `************************************ =end`,
+						`************************************ =end`,
 					)
 					if headerStartIndex != -1 {
 						existingHeader = string(
-    existingContent[:headerStartIndex+len(`************************************ =end`)],
+							existingContent[:headerStartIndex+len(`************************************ =end`)],
 						)
 						existingContent = existingContent[headerStartIndex+len(`************************************ =end`):]
 						break
@@ -235,15 +246,15 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 				line := headerLinesSplit[i]
 				if strings.Contains(
 					line,
-      `************************************************]]`,
+					`************************************************]]`,
 				) {
 					headerStartIndex := strings.Index(
 						string(existingContent),
-            `************************************************]]`,
+						`************************************************]]`,
 					)
 					if headerStartIndex != -1 {
 						existingHeader = string(
-    existingContent[:headerStartIndex+len(`************************************************]]`)],
+							existingContent[:headerStartIndex+len(`************************************************]]`)],
 						)
 						existingContent = existingContent[headerStartIndex+len(`************************************************]]`):]
 						break
@@ -275,7 +286,7 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-			err = showDifferences(newLines, oldLines, templateLinesLen,authIndex)
+			err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
 			if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
 			}

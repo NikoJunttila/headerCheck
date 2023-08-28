@@ -11,15 +11,12 @@
  *  prohibited.
  *
  ****************************************************************/
-
-
 package main
 
 import (
 	"errors"
 	"fmt"
 	"strings"
-
 	"github.com/fatih/color"
 )
 
@@ -28,7 +25,7 @@ func showDifferences(newLines []string, oldLines []string, lines int, authInsert
 	insertLen := len(oldLines) - lines
 	var result []string
 	if diff > 0 {
-		newString := "*"
+		newString := " *"
 		//append * to old header so checking lines stays even at index 5 + authors???
 		// modify hardcoded 5 to suit new template if changing author position
     insertIndex := authInsert + insertLen

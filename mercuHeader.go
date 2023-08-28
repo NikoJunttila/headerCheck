@@ -1,6 +1,6 @@
 /****************************************************************
  *
- *  File   : mercuHeader.go
+ *  File   : headerCheck.go
  *  Author : NikoJunttila <89527972+NikoJunttila@users.noreply.github.com>
  *           Niko Junttila <niko.junttila2@centria.fi>
  *
@@ -11,7 +11,6 @@
  *  prohibited.
  *
  ****************************************************************/
-
 package main
 
 import (
@@ -21,18 +20,44 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
-  "sort"
 
 	"github.com/fatih/color"
 )
 
 func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []string) error {
-		rootDir, err := os.Getwd()
-  if err != nil {
-    return err
-  }
+	rootDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	authIndex := 5
+	var templateContentBody string
 
+	check1, flagTemp := flagTemplate()
+	check2, gwdTemp := getGwdTemplate()
+	check3, globalTemp := getGlobalTemplate()
+
+	if check1 {
+		fmt.Println("Using given template")
+		templateContentBody = flagTemp
+	} else if check2 {
+		fmt.Println("Using template in directory")
+		templateContentBody = gwdTemp
+	} else if check3 {
+		fmt.Println("Using global template")
+		templateContentBody = globalTemp
+	} else {
+    fmt.Println("Using default hardcoded template")
+		templateContentBody = template
+	}
+  templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
+  for i, element := range templateContentBodyAuthorIndexCheck {
+		if strings.Contains(string(element), "{AUTHOR}") {
+			authIndex = i + 2
+			break
+		}
+	}
   err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -40,10 +65,10 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		//check if folder or file should be skipped
 		if shouldSkipDirOrFile(info.Name(), info.IsDir()) {
 			if info.IsDir() {
-				color.Cyan("skipped: %s tree", info.Name())
+				color.Cyan("skipped tree: %s", info.Name())
 				return filepath.SkipDir
 			}
-			color.Cyan("skipped: %s file", info.Name())
+			color.Cyan("skipped file: %s", info.Name())
 			return nil
 		}
 
@@ -58,26 +83,29 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		//get correct template for this suffix
 		switch {
 		case contains(suffix, defaultSuffix):
-			templateContent = templates[0].Header
+			templateContent = "/****************************************************************\n" + templateContentBody + "****************************************************************/"
 		case contains(suffix, pySuffix):
-			templateContent = templates[1].Header
+			templateContent = `"""*************************************************************` + "\n" + templateContentBody + `**********************************************************"""`
 		case contains(suffix, htmlSuffix):
-			templateContent = templates[2].Header
+			templateContent = "<!--------------------------------------------------------------\n" + templateContentBody + "--------------------------------------------------------------->"
+		case suffix == ".rb":
+			templateContent = "=begin *********************************************************" + "\n" + templateContentBody + "******************************************************* =end"
+		case suffix == ".lua":
+			templateContent = "--[[************************************************************" + "\n" + templateContentBody + "**********************************************************]]"
 		default:
 			return nil
 		}
-		// relative, err := filepath.Rel(rootDir, path)
-		// if err != nil {
-		// 	fmt.Println("error with relative path")
-		// 	return err
-		// }
+
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
-    fileName := filepath.Base(path)
+		// Retrieve the commit dates of the file using the "git log" command
+
+		fileName := filepath.Base(path)
 		filenameModded := "'" + fileName + "'"
 		var trimmedYearRange string
 		cmd := exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
 		dir := filepath.Dir(path)
 		cmd.Dir = dir
+
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("Error running 'hg log years' command for file %s: %v\nOutput: %s\n", path, err, output)
@@ -103,7 +131,7 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 			trimmedAuthorList = authorFlag
 		} else {
 			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
-      sort.Sort(sort.Reverse(sort.StringSlice(authors)))
+			sort.Sort(sort.Reverse(sort.StringSlice(authors)))
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
@@ -131,7 +159,7 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		case contains(suffix, defaultSuffix):
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
-				if strings.Contains(line, "************************************************************/") {
+				if strings.Contains(line, "*********************************************************/") {
 					headerStartIndex := strings.Index(string(existingContent), "****************************************************************/")
 					if headerStartIndex != -1 {
 						existingHeader = string(existingContent[:headerStartIndex+len("****************************************************************/")])
@@ -180,6 +208,46 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 					}
 				}
 			}
+		case suffix == ".rb":
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(
+					line,
+					`************************************ =end`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`************************************ =end`,
+					)
+					if headerStartIndex != -1 {
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`************************************ =end`)],
+						)
+						existingContent = existingContent[headerStartIndex+len(`************************************ =end`):]
+						break
+					}
+				}
+			}
+		case suffix == ".lua":
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(
+					line,
+					`************************************************]]`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`************************************************]]`,
+					)
+					if headerStartIndex != -1 {
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`************************************************]]`)],
+						)
+						existingContent = existingContent[headerStartIndex+len(`************************************************]]`):]
+						break
+					}
+				}
+			}
 		default:
 			fmt.Println("error no suffix found")
 			return nil
@@ -197,15 +265,15 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		}
 		//compare lines and show difference
 		oldLines := strings.Split(existingHeader, "\n")
-		// newLines := strings.Split(templateContent, "\n")
+		newLines := strings.Split(templateContent, "\n")
 		if !force {
 			// if previosly found header but the header is smaller than template we assume it was not correct header
 			if len(oldLines) < templateLinesLen {
-				color.Red("No centria copyright header found: %s \n!\n", path)
+				color.Red("No centria copyright header found: %s \n!\n! \n", path)
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-			// err = showDifferences(newLines, oldLines, templateLinesLen)
+			err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
 			if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
 			}
