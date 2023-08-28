@@ -33,19 +33,19 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 	authIndex := 5
 	var templateContentBody string
 
-	check1, flagTemp := flagTemplate()
-	check2, gwdTemp := getGwdTemplate()
-	check3, globalTemp := getGlobalTemplate()
+	// check1, flagTemp := flagTemplate()
+	// check2, gwdTemp := getGwdTemplate()
+	// check3, globalTemp := getGlobalTemplate()
 
-	if check1 {
+  if check, templateCustom := flagTemplate(); check{
 		fmt.Println("Using given template")
-		templateContentBody = flagTemp
-	} else if check2 {
+		templateContentBody = templateCustom
+	} else if check, templateCustom = getGwdTemplate(); check{
 		fmt.Println("Using template in directory")	
-		templateContentBody = gwdTemp
-	} else if check3 {
+		templateContentBody = templateCustom
+	} else if check, templateCustom = getGlobalTemplate(); check{
 		fmt.Println("Using global template")
-		templateContentBody = globalTemp
+		templateContentBody = templateCustom
 	} else {
     fmt.Println("Using default hardcoded template")
 		templateContentBody = template
