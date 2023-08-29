@@ -30,12 +30,9 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 	if err != nil {
 		return err
 	}
-	authIndex := 5
+	
+  authIndex := 5
 	var templateContentBody string
-
-	// check1, flagTemp := flagTemplate()
-	// check2, gwdTemp := getGwdTemplate()
-	// check3, globalTemp := getGlobalTemplate()
 
   if check, templateCustom := flagTemplate(); check{
 		fmt.Println("Using given template")
@@ -59,6 +56,7 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 		}
 	}
 
+	fmt.Println("checking files...")
 	err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -281,20 +279,21 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 		newLines := strings.Split(templateContent, "\n")
 		if !force {
 			// if previosly found header but the header is smaller than template we assume it was not correct header
-			if len(oldLines) < templateLinesLen {
+			if len(oldLines) + 1 < templateLinesLen {
 				color.Red("No centria copyright header found: %s \n!\n! \n", path)
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-			err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
-			if err != nil {
+      // showBlockDifferences(newLines, oldLines)
+			 err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
+			 if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
 			}
 			return nil
 		}
 		var newContent string
 		//_ = showDifferences(newLines, oldLines)
-		if len(oldLines) < templateLinesLen {
+		if len(oldLines) + 1 < templateLinesLen {
 			//here we assume header was wrong and force new at beginning
 			existingContent2, _ := os.ReadFile(path)
 			newContent = templateContent + "\n" + string(existingContent2)

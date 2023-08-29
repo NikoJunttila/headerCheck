@@ -56,6 +56,7 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 			break
 		}
 	}
+	fmt.Println("checking files...")
   err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -266,7 +267,7 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		newLines := strings.Split(templateContent, "\n")
 		if !force {
 			// if previosly found header but the header is smaller than template we assume it was not correct header
-			if len(oldLines) < templateLinesLen {
+			if len(oldLines) + 1 < templateLinesLen {
 				color.Red("No centria copyright header found: %s \n!\n! \n", path)
 				return nil
 			}
@@ -279,7 +280,7 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		}
 		var newContent string
 		//_ = showDifferences(newLines, oldLines)
-		if len(oldLines) < templateLinesLen {
+		if len(oldLines) + 1 < templateLinesLen {
 			//here we assume header was wrong and force new at beginning
 			existingContent2, _ := os.ReadFile(path)
 			newContent = templateContent + "\n" + string(existingContent2)

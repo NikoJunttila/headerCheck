@@ -59,7 +59,6 @@ func main() {
   }
 
 	suffixArray := strings.Split(suffixes, ",")    
-	fmt.Println("checking files...")
 	//checks for .hg file if not found errors and defaults to mercurial
 	dotGitfile := filepath.Join(defaultProjectPath, ".hg")
 	_, err = os.Stat(dotGitfile)

@@ -20,6 +20,16 @@ import (
 	"github.com/fatih/color"
 )
 
+func showBlockDifferences(newLines []string, oldLines []string){
+    oldLines, newLines = removeCommonElements(oldLines, newLines)
+    for i := 0; i < len(oldLines); i++ {
+        color.Red("Old line: - %s" ,oldLines[i])
+    }
+    for j := 0; j < len(newLines); j++{
+      color.Green("new Line: + %s", newLines[j])
+    }
+}
+
 func showDifferences(newLines []string, oldLines []string, lines int, authInsert int) error {
 	diff := len(newLines) - len(oldLines)
 	insertLen := len(oldLines) - lines
@@ -43,13 +53,16 @@ func showDifferences(newLines []string, oldLines []string, lines int, authInsert
 	} else if diff < 0 {
     //in case there are less authors in new header
     color.Yellow("Removed authors here")
-    oldLines, newLines := removeCommonElements(oldLines, newLines)
-    for i := 0; i < len(oldLines); i++ {
-        color.Red("Old line: - %s" ,oldLines[i])
+    
+    showOldLines, showNewLines := removeCommonElements(oldLines, newLines)
+    
+    for i := 0; i < len(showOldLines); i++ {
+        color.Red("Old line: - %s" ,showOldLines[i])
     }
-    for i := 0; i < len(newLines); i++{
-      color.Green("new Lines: + %s", newLines[i])
+    for i := 0; i < len(showNewLines); i++{
+      color.Green("new Lines: + %s", showNewLines[i])
     }
+    return nil
 	} else{
 		result = oldLines
   }
@@ -71,26 +84,28 @@ func showDifferences(newLines []string, oldLines []string, lines int, authInsert
 func removeCommonElements(slice1, slice2 []string) ([]string, []string) {
 
     var resultSlice1, resultSlice2 []string
+  
+    var trimmed1 []string
+    var trimmed2 []string
 
-    // Create a map to store the elements of slice2 for faster lookup
-    elementsInSlice2 := make(map[string]bool)
-    for _, element := range slice2 {
-        elementsInSlice2[element] = true
+    
+    for _, str := range slice2{
+      trimmed2 = append(trimmed2, strings.TrimSpace(str))
     }
-
-    // Iterate through slice1 and check if each element is in slice2
+    for _, str := range slice1{
+      trimmed1 = append(trimmed1, strings.TrimSpace(str))
+    }
     for _, element := range slice1 {
-        if _, exists := elementsInSlice2[element]; !exists {
+      element = strings.TrimSpace(element)
+        if !contains(element, trimmed2) {
             resultSlice1 = append(resultSlice1, element)
         }
     }
-
-    // Iterate through slice2 and check if each element is in slice1
     for _, element := range slice2 {
-        if _, exists := elementsInSlice2[element]; !exists {
+      element = strings.TrimSpace(element)
+        if !contains(element, trimmed1) {
             resultSlice2 = append(resultSlice2, element)
         }
     }
-
     return resultSlice1, resultSlice2
 }
