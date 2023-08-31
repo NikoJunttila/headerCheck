@@ -32,7 +32,6 @@ func main() {
 	forceFlagPtr := flag.Bool("force", false, "actually fix files instead of just showing whats wrong")
 	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='node_modules'")
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
-  
 	flag.StringVar(&flagTemp, "template", "", "custom template location")
 
   newSufPtr := flag.String("newSuf", "", "Add new default suffix if not already included -newSuf='.elixir'")
@@ -45,11 +44,7 @@ func main() {
 	flag.Parse()
   
   if *helpFlag {
-    exePath, _ := os.Executable()
-    if err != nil {
-      fmt.Println("no global exe??")
-    }
-      color.Red("global Executable location: %s \n", exePath)
+    
       printUsage()
       os.Exit(0)
     }
@@ -87,8 +82,13 @@ func main() {
 	}
 }
 
-
 func printUsage() {
+  exePath, err := os.Executable()
+    if err != nil {
+      fmt.Println("no global exe??")
+    }
+     fmt.Println("First checks local directory for template.txt then \nchecks global exe location folder if neither found use -template or default template")
+     color.Red("Global Executable location: %s \n", exePath)
      fmt.Println("Usage:")
      fmt.Println("  headerCheck [options]")
      fmt.Println("\nOptions:")
