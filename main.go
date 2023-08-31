@@ -58,7 +58,7 @@ func main() {
 	dotGitfile := filepath.Join(defaultProjectPath, ".hg")
 	_, err = os.Stat(dotGitfile)
 	if err == nil || *forceVsc == "hg" {
-		fmt.Println("using hg")
+		fmt.Print("using hg")
 		readIgnore(".hgignore")
 		err = mercuCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
 		if err != nil {

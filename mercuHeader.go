@@ -49,6 +49,7 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		templateContentBody = template
 	}
 
+  templateContentBody = strings.TrimRight(templateContentBody, "\n")
   templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
   for i, element := range templateContentBodyAuthorIndexCheck {
 		if strings.Contains(string(element), "{AUTHOR}") {
@@ -96,7 +97,6 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		}
 
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
-		// Retrieve the commit dates of the file using the "git log" command
 
 		fileName := filepath.Base(path)
 		filenameModded := "'" + fileName + "'"

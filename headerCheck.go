@@ -32,6 +32,7 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 	}
 	
   authIndex := 5
+
 	var templateContentBody string
 
   if check, templateCustom := flagTemplate(); check{
@@ -47,11 +48,12 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
     fmt.Println("Using default hardcoded template")
 		templateContentBody = template
 	}    
-
+  templateContentBody = strings.TrimRight(templateContentBody, "\n")
   templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
   for i, element := range templateContentBodyAuthorIndexCheck {
 		if strings.Contains(string(element), "{AUTHOR}") {
 			authIndex = i + 2
+      // fmt.Println(authIndex)
 			break
 		}
 	}
@@ -284,7 +286,8 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 				return nil
 			}
 			color.Red("file %s needs fix \n \n", path)
-      // showBlockDifferences(newLines, oldLines)
+       showBlockDifferences(newLines, oldLines)
+       fmt.Println("different print styles")
 			 err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
 			 if err != nil {
 				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
