@@ -94,7 +94,10 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 			templateContent = "=begin *********************************************************" + "\n" + templateContentBody + "******************************************************* =end"
 		case suffix == ".lua":
 			templateContent = "--[[************************************************************" + "\n" + templateContentBody + "**********************************************************]]"
-		default:
+		case suffix == ".ml" || suffix == ".mli":
+      //OCaml
+			templateContent = "(************************************************************" + "\n" + templateContentBody + "**********************************************************)"
+default:
 			return nil
 		}
 
@@ -281,7 +284,27 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 					}
 				}
 			}
-		default:
+			case suffix == ".ml" || suffix == ".mli":
+			for i := 0; i < maxLines; i++ {
+				line := headerLinesSplit[i]
+				if strings.Contains(
+					line,
+					`************************************************)`,
+				) {
+					headerStartIndex := strings.Index(
+						string(existingContent),
+						`************************************************)`,
+					)
+					if headerStartIndex != -1 {
+						existingHeader = string(
+							existingContent[:headerStartIndex+len(`************************************************)`)],
+						)
+						existingContent = existingContent[headerStartIndex+len(`************************************************)`):]
+						break
+					}
+				}
+			}	
+    default:
 			fmt.Println("error no suffix found")
 			return nil
 		}

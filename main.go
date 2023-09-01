@@ -27,8 +27,11 @@ func main() {
 
 	var suffixes string
   var flagTemp string
-
 	defaultProjectPath, err := os.Getwd()
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
 	forceFlagPtr := flag.Bool("force", false, "actually fix files instead of just showing whats wrong")
 	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='node_modules'")
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
@@ -43,8 +46,7 @@ func main() {
  
 	flag.Parse()
   
-  if *helpFlag {
-    
+  if *helpFlag { 
       printUsage()
       os.Exit(0)
     }
