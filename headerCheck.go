@@ -21,11 +21,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+  "sort"
 
 	"github.com/fatih/color"
 )
 
-func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []string) error {
+func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []string, gitOrMerc string) error {
 	rootDir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -100,7 +101,9 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
 		// Retrieve the commit dates of the file using the "git log" command
 		var trimmedYearRange string
-		cmd := exec.Command(
+    var cmd *exec.Cmd
+		if gitOrMerc == "git"{
+    cmd = exec.Command(
 			"git",
 			"log",
 			"--follow",
@@ -109,6 +112,11 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 			"--",
 			path,
 		)
+  }else{
+    fileName := filepath.Base(path)
+		filenameModded := "'" + fileName + "'"
+		cmd = exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
+    }
 		dir := filepath.Dir(path)
 		cmd.Dir = dir
 		output, err := cmd.CombinedOutput()
@@ -119,7 +127,11 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 			commitDates := strings.Fields(string(output))
 			var years []string
 			for _, date := range commitDates {
+        if gitOrMerc == "git"{
 				years = append(years, date[:5])
+        } else {
+				years = append(years, date[:4])
+        }
 			}
 			years = getUniques(years)
 			yearRange := formatYearRange(years)
@@ -129,7 +141,9 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 		var trimmedAuthorList string
 		var authors []string
 		// Retrieve the authors of the file using the "git log" command
-		cmd2 := exec.Command(
+    var cmd2 *exec.Cmd
+		if gitOrMerc=="git"{
+    cmd2 = exec.Command(
 			"git",
 			"log",
 			"--follow",
@@ -138,6 +152,9 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 			"--",
 			path,
 		)
+    }else{
+		cmd2 = exec.Command("hg", "log", "--template", "{author|person} <{author|email}>\n", path)
+    }
 		cmd2.Dir = dir
 		output2, err := cmd2.Output()
 		if err != nil {
@@ -145,6 +162,9 @@ func gitCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr []
 			trimmedAuthorList = authorFlag
 		} else {
 			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+      if gitOrMerc == "merc"{
+			sort.Sort(sort.Reverse(sort.StringSlice(authors)))
+      }
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}

@@ -60,15 +60,15 @@ func main() {
 	if err == nil || *forceVsc == "hg" {
 		fmt.Print("using hg")
 		readIgnore(".hgignore")
-		err = mercuCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git")
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	} else {
-		fmt.Println("using git")
+		fmt.Print("using git")
 		readIgnore(".gitignore")
-		err = gitCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git")
 		if err != nil {
 			fmt.Println(err)
 			return

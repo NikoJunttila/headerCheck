@@ -97,10 +97,10 @@ func mercuCheckHeader(force bool, yearFlag string, authorFlag string, suffixArr 
 		}
 
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
+		var trimmedYearRange string
 
 		fileName := filepath.Base(path)
 		filenameModded := "'" + fileName + "'"
-		var trimmedYearRange string
 		cmd := exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
 		dir := filepath.Dir(path)
 		cmd.Dir = dir
