@@ -60,7 +60,7 @@ func main() {
 	if err == nil || *forceVsc == "hg" {
 		fmt.Print("using hg")
 		readIgnore(".hgignore")
-		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git")
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"merc")
 		if err != nil {
 			fmt.Println(err)
 			return
