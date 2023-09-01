@@ -27,8 +27,11 @@ func main() {
 
 	var suffixes string
   var flagTemp string
-
 	defaultProjectPath, err := os.Getwd()
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
 	forceFlagPtr := flag.Bool("force", false, "actually fix files instead of just showing whats wrong")
 	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='node_modules'")
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
@@ -43,8 +46,7 @@ func main() {
  
 	flag.Parse()
   
-  if *helpFlag {
-    
+  if *helpFlag { 
       printUsage()
       os.Exit(0)
     }
@@ -60,15 +62,15 @@ func main() {
 	if err == nil || *forceVsc == "hg" {
 		fmt.Print("using hg")
 		readIgnore(".hgignore")
-		err = mercuCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"merc")
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	} else {
-		fmt.Println("using git")
+		fmt.Print("using git")
 		readIgnore(".gitignore")
-		err = gitCheckHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray)
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git")
 		if err != nil {
 			fmt.Println(err)
 			return
