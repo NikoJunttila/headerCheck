@@ -20,8 +20,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
-  "sort"
 
 	"github.com/fatih/color"
 )
@@ -31,33 +31,32 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 	if err != nil {
 		return err
 	}
-	
-  authIndex := 5
 
 	var templateContentBody string
-
-  if check, templateCustom := flagTemplate(); check{
+	if check, templateCustom := flagTemplate(); check {
 		fmt.Println("Using given template")
 		templateContentBody = templateCustom
-	} else if check, templateCustom = getGwdTemplate(); check{
-		fmt.Println("Using template in directory")	
+	} else if check, templateCustom = getGwdTemplate(); check {
+		fmt.Println("Using template in directory")
 		templateContentBody = templateCustom
-	} else if check, templateCustom = getGlobalTemplate(); check{
+	} else if check, templateCustom = getGlobalTemplate(); check {
 		fmt.Println("Using global template")
 		templateContentBody = templateCustom
 	} else {
-    fmt.Println("Using default hardcoded template")
+		fmt.Println("Using default hardcoded template")
 		templateContentBody = template
-	}    
-  templateContentBody = strings.TrimRight(templateContentBody, "\n")
-  templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
-  for i, element := range templateContentBodyAuthorIndexCheck {
-		if strings.Contains(string(element), "{AUTHOR}") {
-			authIndex = i + 2
-      // fmt.Println(authIndex)
-			break
-		}
 	}
+	templateContentBody = strings.TrimRight(templateContentBody, "\n")
+	//stuff for old diff printing
+  // authIndex := 5
+	// templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
+	// for i, element := range templateContentBodyAuthorIndexCheck {
+	// 	if strings.Contains(string(element), "{AUTHOR}") {
+	// 		authIndex = i + 2
+	// 		// fmt.Println(authIndex)
+	// 		break
+	// 	}
+	// }
 
 	fmt.Println("checking files...")
 	err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
@@ -95,46 +94,49 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		case suffix == ".lua":
 			templateContent = "--[[************************************************************" + "\n" + templateContentBody + "**********************************************************]]"
 		case suffix == ".ml" || suffix == ".mli":
-      //OCaml
+			//OCaml
 			templateContent = "(************************************************************" + "\n" + templateContentBody + "**********************************************************)"
-default:
+		default:
 			return nil
 		}
 
 		templateLinesLen := len(strings.Split(templateContent, "\n"))
 		// Retrieve the commit dates of the file using the "git log" command
 		var trimmedYearRange string
-    var cmd *exec.Cmd
-		if gitOrMerc == "git"{
-    cmd = exec.Command(
-			"git",
-			"log",
-			"--follow",
-			"--reverse",
-			"--pretty=format:\"%as\"",
-			"--",
-			path,
-		)
-  }else{
-    fileName := filepath.Base(path)
-		filenameModded := "'" + fileName + "'"
-		cmd = exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
-    }
+		var cmd *exec.Cmd
+		if gitOrMerc == "git" {
+			cmd = exec.Command(
+				"git",
+				"log",
+				"--follow",
+				"--reverse",
+				"--pretty=format:\"%as\"",
+				"--",
+				path,
+			)
+		} else {
+			fileName := filepath.Base(path)
+			filenameModded := "'" + fileName + "'"
+			cmd = exec.Command("hg", "log", "--template", "{date|shortdate}\n", "-r", "reverse(ancestors(file("+filenameModded+")))")
+		}
 		dir := filepath.Dir(path)
 		cmd.Dir = dir
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			// fmt.Printf("Error running 'git log years' command for file %s: %v\nOutput: %s\n", path, err, output)
 			trimmedYearRange = yearFlag
+		} else if string(output) == "" {
+			fmt.Println("no year found. Using default: ", filepath.Base(path))
+			trimmedYearRange = yearFlag
 		} else {
 			commitDates := strings.Fields(string(output))
 			var years []string
 			for _, date := range commitDates {
-        if gitOrMerc == "git"{
-				years = append(years, date[:5])
-        } else {
-				years = append(years, date[:4])
-        }
+				if gitOrMerc == "git" {
+					years = append(years, date[:5])
+				} else {
+					years = append(years, date[:4])
+				}
 			}
 			years = getUniques(years)
 			yearRange := formatYearRange(years)
@@ -144,30 +146,33 @@ default:
 		var trimmedAuthorList string
 		var authors []string
 		// Retrieve the authors of the file using the "git log" command
-    var cmd2 *exec.Cmd
-		if gitOrMerc=="git"{
-    cmd2 = exec.Command(
-			"git",
-			"log",
-			"--follow",
-			"--reverse",
-			"--pretty=format:\"%an <%ae>\"",
-			"--",
-			path,
-		)
-    }else{
-		cmd2 = exec.Command("hg", "log", "--template", "{author|person} <{author|email}>\n", path)
-    }
+		var cmd2 *exec.Cmd
+		if gitOrMerc == "git" {
+			cmd2 = exec.Command(
+				"git",
+				"log",
+				"--follow",
+				"--reverse",
+				"--pretty=format:\"%an <%ae>\"",
+				"--",
+				path,
+			)
+		} else {
+			cmd2 = exec.Command("hg", "log", "--template", "{author|person} <{author|email}>\n", path)
+		}
 		cmd2.Dir = dir
 		output2, err := cmd2.Output()
 		if err != nil {
 			fmt.Printf("Error running 'git log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
 			trimmedAuthorList = authorFlag
+		} else if string(output2) == "" {
+			fmt.Println("no author found. Using default: ", filepath.Base(path))
+			trimmedAuthorList = authorFlag
 		} else {
 			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
-      if gitOrMerc == "merc"{
-			sort.Sort(sort.Reverse(sort.StringSlice(authors)))
-      }
+			if gitOrMerc == "merc" {
+				sort.Sort(sort.Reverse(sort.StringSlice(authors)))
+			}
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
@@ -284,7 +289,7 @@ default:
 					}
 				}
 			}
-			case suffix == ".ml" || suffix == ".mli":
+		case suffix == ".ml" || suffix == ".mli":
 			for i := 0; i < maxLines; i++ {
 				line := headerLinesSplit[i]
 				if strings.Contains(
@@ -303,8 +308,8 @@ default:
 						break
 					}
 				}
-			}	
-    default:
+			}
+		default:
 			fmt.Println("error no suffix found")
 			return nil
 		}
@@ -324,22 +329,22 @@ default:
 		newLines := strings.Split(templateContent, "\n")
 		if !force {
 			// if previosly found header but the header is smaller than template we assume it was not correct header
-			if len(oldLines) + 1 < templateLinesLen {
+			if len(oldLines)+1 < templateLinesLen {
 				color.Red("No centria copyright header found: %s \n!\n! \n", path)
 				return nil
 			}
-			color.Red("file %s needs fix \n \n", path)
-       showBlockDifferences(newLines, oldLines)
-       fmt.Println("different print styles")
-			 err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
-			 if err != nil {
-				color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
-			}
+			color.Red("\nfile %s needs fix \n", path)
+			showBlockDifferences(newLines, oldLines)
+			// loops through each line equally and shows differences. breaks if the template is modified between checks.
+			// err = showDifferences(newLines, oldLines, templateLinesLen, authIndex)
+			// if err != nil {
+			// 	color.Red("error with file %s check manually or consider ignoring if forcing header.\n!\n! ", path)
+			// }
 			return nil
 		}
 		var newContent string
 		//_ = showDifferences(newLines, oldLines)
-		if len(oldLines) + 1 < templateLinesLen {
+		if len(oldLines)+1 < templateLinesLen {
 			//here we assume header was wrong and force new at beginning
 			existingContent2, _ := os.ReadFile(path)
 			newContent = templateContent + "\n" + string(existingContent2)

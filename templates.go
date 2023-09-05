@@ -13,7 +13,6 @@
  ****************************************************************/
 package main
 
-
 type Template struct {
 	Suffix string
 	Header string
@@ -21,10 +20,10 @@ type Template struct {
 
 // add more languages that have /* */ comment out style
 var defaultSuffix = []string{".go", ".cpp", ".c", ".h", ".hpp", ".js", ".ts",
-	".cs", ".java", ".rs", ".qml", ".css", ".qss",".scala",".kt",".jsx",".tsx",".swift"}
+	".cs", ".java", ".rs", ".qml", ".css", ".qss", ".scala", ".kt", ".jsx", ".tsx", ".swift", ".zig"}
 
 // add more languages that have """ """ python style comment out style
-var pySuffix = []string{".py",".exs"}
+var pySuffix = []string{".py", ".exs"}
 
 // add more languages that have <-- --> html style comment out style
 var htmlSuffix = []string{".html"}
@@ -41,8 +40,9 @@ var template string = ` *
  *  prohibited.
  *
  `
+
 // var templates = []Template{
-// 	{"default", 
+// 	{"default",
 // ` *
 //  *  File   : {FILENAME}
 //  *  Author : {AUTHOR}
