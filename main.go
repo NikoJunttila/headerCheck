@@ -37,7 +37,7 @@ func main() {
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
 	flag.StringVar(&flagTemp, "template", "", "custom template location")
 
-  newSufPtr := flag.String("newSuf", "", "Add new default suffix if not already included -newSuf='.elixir'")
+  newSufPtr := flag.String("newSuf", "", "Add new default suffix /* */ comment style -newSuf='.HC'")
 	authorFlagPtr := flag.String("author", "default", "default author if no repo histories")
 	yearFlagPtr := flag.String("year", "2023", "default year if no repo histories")
 	forceVsc := flag.String("vsc", "", "force version control if no .hg file -vsc='hg'")
@@ -89,7 +89,7 @@ func printUsage() {
     if err != nil {
       fmt.Println("no global exe??")
     }
-     fmt.Println("First checks local directory for template.txt then \nchecks global exe location folder if neither found use -template or default template")
+     fmt.Println("First checks -template flag then local directory for template.txt then \nchecks global exe location folder if all 3 return false defaults to template inside code")
      color.Red("Global Executable location: %s \n", exePath)
      fmt.Println("Usage:")
      fmt.Println("  headerCheck [options]")

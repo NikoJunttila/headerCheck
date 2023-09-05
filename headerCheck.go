@@ -343,7 +343,6 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 			return nil
 		}
 		var newContent string
-		//_ = showDifferences(newLines, oldLines)
 		if len(oldLines)+1 < templateLinesLen {
 			//here we assume header was wrong and force new at beginning
 			existingContent2, _ := os.ReadFile(path)
