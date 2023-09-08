@@ -65,8 +65,10 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		if err != nil {
 			return err
 		}
+    relPath, _ := filepath.Rel(rootDir, path)
 		//check if folder or file should be skipped
-		if shouldSkipDirOrFile(info.Name(), info.IsDir()) {
+    //if you don't want to use relational path for file skiping change relPath to info.Name()
+		if shouldSkipDirOrFile(relPath, info.IsDir()) {
 			if info.IsDir() {
 				color.Cyan("skipped tree: %s", info.Name())
 				return filepath.SkipDir
@@ -175,7 +177,9 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
       }
 			trimmedAuthorList = authorFlag
 		} else if string(output2) == "" {
+      if verbose{
 			fmt.Println("error using git. Using default author: ", authorFlag)
+      }
 			trimmedAuthorList = authorFlag
 		} else {
 			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))

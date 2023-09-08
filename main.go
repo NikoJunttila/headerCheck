@@ -61,7 +61,7 @@ func main() {
   var single string
 
 	forceFlagPtr := flag.Bool("force", false, "actually fix files instead of just showing whats wrong")
-	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='node_modules'")
+	flag.Var((*stringSliceFlag)(&foldersToSkip), "ignore", "Specify folders/files to ignore -ignore='vendor' -ignore='tests/epic.go' ignore files are relational so if you want to ignore nested folders/files you need to give correct path")
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
 	flag.StringVar(&flagTemp, "template", "", "custom template location")
   
