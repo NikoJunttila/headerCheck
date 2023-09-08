@@ -140,10 +140,6 @@ func (ssf *stringSliceFlag) String() string {
 }
 
 func (ssf *stringSliceFlag) Set(value string) error {
-  if strings.Contains(value, "/"){
-  color.Red("Fatal error: ")
-  log.Fatal("Did you mean to use \\ instead of / in -ignore?")
-  }
 	*ssf = append(*ssf, value)
 	return nil
 }
