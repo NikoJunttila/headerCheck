@@ -17,11 +17,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
-  "os/exec"
+	"os/exec"
 	"path/filepath"
 	"strings"
-  "time"
+	"time"
+
 	"github.com/fatih/color"
 )
 
@@ -65,6 +67,7 @@ func main() {
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
 	flag.StringVar(&flagTemp, "template", "", "custom template location")
   
+  headerPtr := flag.Bool("noHeader", false, "ignore files that do not have headers")
   verbosePtr := flag.Bool("verbose", false, "prints all extra messages")
   flag.StringVar(&single, "single", "", "If you want to only check a single file -single='my_awesome_source_file.go'")
   newSufPtr := flag.String("newSuf", "", "Add new suffix that has this comment style /* */ if not already included -newSuf='.HC'")
@@ -72,7 +75,6 @@ func main() {
 	yearFlagPtr := flag.String("year", currentYear, "default year if no repo histories")
 	forceVsc := flag.String("vsc", "", "force version control if no .hg file -vsc='hg'")
   
-
   helpFlag := flag.Bool("usage", false, "Show help message")
  
 	flag.Parse()
@@ -90,7 +92,7 @@ func main() {
 	if usingGit == "hg" || *forceVsc == "hg" {
 		fmt.Println("using hg")
 		readIgnore(".hgignore")
-		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"merc",*verbosePtr)
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"merc",*verbosePtr,*headerPtr)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(4)
@@ -98,7 +100,7 @@ func main() {
 	} else {
 		fmt.Println("using git")
 		readIgnore(".gitignore")
-		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git",*verbosePtr)
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git",*verbosePtr,*headerPtr)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(4)
@@ -138,6 +140,10 @@ func (ssf *stringSliceFlag) String() string {
 }
 
 func (ssf *stringSliceFlag) Set(value string) error {
+  if strings.Contains(value, "/"){
+  color.Red("Fatal error: ")
+  log.Fatal("Did you mean to use \\ instead of / in -ignore?")
+  }
 	*ssf = append(*ssf, value)
 	return nil
 }

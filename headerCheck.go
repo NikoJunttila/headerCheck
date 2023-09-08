@@ -28,7 +28,7 @@ import (
 
 var FixesCheck bool = false
 
-func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []string, gitOrMerc string, verbose bool) error {
+func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []string, gitOrMerc string, verbose bool, noHeadIgn bool) error {
 	rootDir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -70,10 +70,10 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
     //if you don't want to use relational path for file skiping change relPath to info.Name()
 		if shouldSkipDirOrFile(relPath, info.IsDir()) {
 			if info.IsDir() {
-				color.Cyan("skipped tree: %s", info.Name())
+				color.Cyan("skipped tree: %s", relPath)
 				return filepath.SkipDir
 			}
-			color.Cyan("skipped file: %s", info.Name())
+			color.Cyan("skipped file: %s", relPath)
 			return nil
 		}
 
@@ -329,18 +329,27 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		//clean useless empty space and linebreaks
 		cleanedHeader := cleanString(existingHeader)
 		cleanedtemplateContent := cleanString(templateContent)
+
+    oldLines := strings.Split(existingHeader, "\n")
+    if noHeadIgn && len(existingHeader)< 10{
+      return nil
+    }
+    if noHeadIgn && len(oldLines)+1 < templateLinesLen{
+      return nil
+    }
 		if cleanedHeader == cleanedtemplateContent {
       if verbose{
 			fmt.Printf("File %s is correct \n", path)
       }
 			return nil
 		}
+
 		if !force && len(existingHeader) < 10 {
+      FixesCheck = true
 			color.Red("No header found: %s \n", path)
 			return nil
 		}
 		//compare lines and show difference
-		oldLines := strings.Split(existingHeader, "\n")
 		newLines := strings.Split(templateContent, "\n")
 		if !force {
       FixesCheck = true
