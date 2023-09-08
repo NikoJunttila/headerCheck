@@ -17,13 +17,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
-
+  "runtime"
 	"github.com/fatih/color"
 )
 
@@ -122,7 +121,7 @@ func printUsage() {
       fmt.Println("no global exe??")
     }
 
-     fmt.Println("First checks -template flag \n then directory program was executed from for template.txt then \nchecks global exe location folder if neither all 3 return false uses default template inside code")
+     fmt.Println("First checks -template flag \nthen directory program for template.txt then \nchecks global exe location folder if all 3 return false uses default template inside code")
      color.Red("Global Executable location: %s \n", exePath)
      fmt.Println("Usage:")
      fmt.Println("  headerCheck [options]")
@@ -131,7 +130,6 @@ func printUsage() {
        fmt.Printf("  -%s: %s (default: %v)\n", f.Name, f.Usage, f.DefValue)
      })
 }
-
 // ignore folders/files stuff
 type stringSliceFlag []string
 
@@ -140,6 +138,11 @@ func (ssf *stringSliceFlag) String() string {
 }
 
 func (ssf *stringSliceFlag) Set(value string) error {
+if runtime.GOOS == "windows" {
+    if strings.Contains(value, "/"){
+      color.Red("Did you mean to use \\ in -ignore instead of /?")
+    }
+}
 	*ssf = append(*ssf, value)
 	return nil
 }
