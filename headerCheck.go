@@ -26,6 +26,8 @@ import (
 	"github.com/fatih/color"
 )
 
+var FixesCheck bool = false
+
 func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []string, gitOrMerc string) error {
 	rootDir, err := os.Getwd()
 	if err != nil {
@@ -75,7 +77,12 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 
 		suffix := filepath.Ext(path)
 		suffixFlag := flag.Lookup("suffix")
+    singleFlag := flag.Lookup("single")
+    singleVal := singleFlag.Value.String()
 
+    if singleVal != "" && filepath.Base(path) != singleVal{
+      return nil
+    }
 		if !contains(suffix, suffixArr) && suffixFlag.Value.String() != "" {
 			return nil
 		}
@@ -328,6 +335,7 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		oldLines := strings.Split(existingHeader, "\n")
 		newLines := strings.Split(templateContent, "\n")
 		if !force {
+      FixesCheck = true
 			// if previosly found header but the header is smaller than template we assume it was not correct header
 			if len(oldLines)+1 < templateLinesLen {
 				color.Red("No centria copyright header found: %s \n!\n! \n", path)
