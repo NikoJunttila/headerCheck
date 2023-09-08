@@ -28,7 +28,7 @@ import (
 
 var FixesCheck bool = false
 
-func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []string, gitOrMerc string) error {
+func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []string, gitOrMerc string, verbose bool) error {
 	rootDir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 			// fmt.Printf("Error running 'git log years' command for file %s: %v\nOutput: %s\n", path, err, output)
 			trimmedYearRange = yearFlag
 		} else if string(output) == "" {
-			fmt.Println("no year found. Using default: ", filepath.Base(path))
+			// fmt.Println("no year found. Using default: ", filepath.Base(path))
 			trimmedYearRange = yearFlag
 		} else {
 			commitDates := strings.Fields(string(output))
@@ -170,10 +170,12 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		cmd2.Dir = dir
 		output2, err := cmd2.Output()
 		if err != nil {
-			fmt.Printf("Error running 'git log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
+			if verbose{
+        fmt.Printf("Error running 'git/hg log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
+      }
 			trimmedAuthorList = authorFlag
 		} else if string(output2) == "" {
-			fmt.Println("no author found. Using default: ", filepath.Base(path))
+			fmt.Println("error using git. Using default author: ", authorFlag)
 			trimmedAuthorList = authorFlag
 		} else {
 			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
@@ -324,7 +326,9 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		cleanedHeader := cleanString(existingHeader)
 		cleanedtemplateContent := cleanString(templateContent)
 		if cleanedHeader == cleanedtemplateContent {
+      if verbose{
 			fmt.Printf("File %s is correct \n", path)
+      }
 			return nil
 		}
 		if !force && len(existingHeader) < 10 {

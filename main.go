@@ -65,6 +65,7 @@ func main() {
 	flag.StringVar(&suffixes, "suffix", "", "Comma-separated list of suffixes. only goes through these files -suffix='.js,.cpp,.py'")
 	flag.StringVar(&flagTemp, "template", "", "custom template location")
   
+  verbosePtr := flag.Bool("verbose", false, "prints all extra messages")
   flag.StringVar(&single, "single", "", "If you want to only check a single file -single='my_awesome_source_file.go'")
   newSufPtr := flag.String("newSuf", "", "Add new suffix that has this comment style /* */ if not already included -newSuf='.HC'")
 	authorFlagPtr := flag.String("author", defaultAuthor, "default author if no repo histories")
@@ -87,17 +88,17 @@ func main() {
   
 	suffixArray := strings.Split(suffixes, ",")    
 	if usingGit == "hg" || *forceVsc == "hg" {
-		fmt.Print("using hg")
+		fmt.Println("using hg")
 		readIgnore(".hgignore")
-		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"merc")
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"merc",*verbosePtr)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(4)
 		}
 	} else {
-		fmt.Print("using git")
+		fmt.Println("using git")
 		readIgnore(".gitignore")
-		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git")
+		err = checkHeader(*forceFlagPtr, *yearFlagPtr, *authorFlagPtr, suffixArray,"git",*verbosePtr)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(4)

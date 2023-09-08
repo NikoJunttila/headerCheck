@@ -14,7 +14,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	// "fmt"
 	"os"
 	"strings"
 )
@@ -23,7 +23,7 @@ func readIgnore(gitOrHg string) {
 	gitignorePath := gitOrHg
 	file, err := os.Open(gitignorePath)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return
 	}
 	defer file.Close()
