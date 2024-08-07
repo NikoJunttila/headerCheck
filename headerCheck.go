@@ -10,7 +10,7 @@
  *  Unauthorized copying of this file, via any medium is strictly
  *  prohibited.
  *
- ****************************************************************/
+ ****************************************************************/
 
 package main
 
@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/fatih/color"
@@ -50,16 +49,6 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		templateContentBody = template
 	}
 	templateContentBody = strings.TrimRight(templateContentBody, "\n")
-	//stuff for old diff printing
-	// authIndex := 5
-	// templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
-	// for i, element := range templateContentBodyAuthorIndexCheck {
-	// 	if strings.Contains(string(element), "{AUTHOR}") {
-	// 		authIndex = i + 2
-	// 		// fmt.Println(authIndex)
-	// 		break
-	// 	}
-	// }
 
 	fmt.Println("checking files...")
 	err = filepath.WalkDir(rootDir, func(path string, info fs.DirEntry, err error) error {
@@ -133,10 +122,8 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		cmd.Dir = dir
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			// fmt.Printf("Error running 'git log years' command for file %s: %v\nOutput: %s\n", path, err, output)
 			trimmedYearRange = yearFlag
 		} else if string(output) == "" {
-			// fmt.Println("no year found. Using default: ", filepath.Base(path))
 			trimmedYearRange = yearFlag
 		} else {
 			dates := strings.Split(string(output), "\n")
@@ -194,9 +181,6 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 				authors[i], authors[j] = authors[j], authors[i]
 			}
 			authors = getUniques(authors)
-			if gitOrMerc == "merc" {
-				sort.Sort(sort.Reverse(sort.StringSlice(authors)))
-			}
 			authorList := strings.Join(authors, "\n *           ")
 			trimmedAuthorList = strings.ReplaceAll(authorList, `"`, "")
 		}
