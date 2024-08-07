@@ -18,7 +18,9 @@ var foldersToSkip = []string{
 	".venv",
 	"build",
   "vendor",
+  "venv",
 }
+
 var filesToSkip = []string{}
 
 func shouldSkipDirOrFile(name string, isDir bool) bool {

@@ -50,7 +50,7 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 	}
 	templateContentBody = strings.TrimRight(templateContentBody, "\n")
 	//stuff for old diff printing
-  // authIndex := 5
+	// authIndex := 5
 	// templateContentBodyAuthorIndexCheck := strings.Split(string(templateContentBody), "\n")
 	// for i, element := range templateContentBodyAuthorIndexCheck {
 	// 	if strings.Contains(string(element), "{AUTHOR}") {
@@ -65,9 +65,9 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		if err != nil {
 			return err
 		}
-    relPath, _ := filepath.Rel(rootDir, path)
+		relPath, _ := filepath.Rel(rootDir, path)
 		//check if folder or file should be skipped
-    //if you don't want to use relational path for file skiping change relPath to info.Name()
+		//if you don't want to use relational path for file skiping change relPath to info.Name()
 		if shouldSkipDirOrFile(relPath, info.IsDir()) {
 			if info.IsDir() {
 				color.Cyan("skipped tree: %s", relPath)
@@ -79,12 +79,12 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 
 		suffix := filepath.Ext(path)
 		suffixFlag := flag.Lookup("suffix")
-    singleFlag := flag.Lookup("single")
-    singleVal := singleFlag.Value.String()
+		singleFlag := flag.Lookup("single")
+		singleVal := singleFlag.Value.String()
 
-    if singleVal != "" && filepath.Base(path) != singleVal{
-      return nil
-    }
+		if singleVal != "" && filepath.Base(path) != singleVal {
+			return nil
+		}
 		if !contains(suffix, suffixArr) && suffixFlag.Value.String() != "" {
 			return nil
 		}
@@ -118,7 +118,7 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 				"git",
 				"log",
 				"--follow",
-				"--reverse",
+				// "--reverse",
 				"--pretty=format:\"%as\"",
 				"--",
 				path,
@@ -138,9 +138,14 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 			// fmt.Println("no year found. Using default: ", filepath.Base(path))
 			trimmedYearRange = yearFlag
 		} else {
-			commitDates := strings.Fields(string(output))
+			dates := strings.Split(string(output), "\n")
+			// Reverse the order of the dates
+			for i, j := 0, len(dates)-1; i < j; i, j = i+1, j-1 {
+				dates[i], dates[j] = dates[j], dates[i]
+			}
+			//commitDates := strings.Fields(string(output))
 			var years []string
-			for _, date := range commitDates {
+			for _, date := range dates {
 				if gitOrMerc == "git" {
 					years = append(years, date[:5])
 				} else {
@@ -161,7 +166,7 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 				"git",
 				"log",
 				"--follow",
-				"--reverse",
+				// "--reverse",
 				"--pretty=format:\"%an <%ae>\"",
 				"--",
 				path,
@@ -172,17 +177,22 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		cmd2.Dir = dir
 		output2, err := cmd2.Output()
 		if err != nil {
-			if verbose{
-        fmt.Printf("Error running 'git/hg log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
-      }
+			if verbose {
+				fmt.Printf("Error running 'git/hg log authors' command for file %s: %v\nOutput: %s\n", path, err, output2)
+			}
 			trimmedAuthorList = authorFlag
 		} else if string(output2) == "" {
-      if verbose{
-			fmt.Println("error using git. Using default author: ", authorFlag)
-      }
+			if verbose {
+				fmt.Println("error using git. Using default author: ", authorFlag)
+			}
 			trimmedAuthorList = authorFlag
 		} else {
-			authors = getUniques(strings.Split(strings.TrimSpace(string(output2)), "\n"))
+			authors := strings.Split(strings.TrimSpace(string(output2)), "\n")
+			// Reverse the order of the authors
+			for i, j := 0, len(authors)-1; i < j; i, j = i+1, j-1 {
+				authors[i], authors[j] = authors[j], authors[i]
+			}
+			authors = getUniques(authors)
 			if gitOrMerc == "merc" {
 				sort.Sort(sort.Reverse(sort.StringSlice(authors)))
 			}
@@ -330,29 +340,29 @@ func checkHeader(force bool, yearFlag string, authorFlag string, suffixArr []str
 		cleanedHeader := cleanString(existingHeader)
 		cleanedtemplateContent := cleanString(templateContent)
 
-    oldLines := strings.Split(existingHeader, "\n")
-    if noHeadIgn && len(existingHeader)< 10{
-      return nil
-    }
-    if noHeadIgn && len(oldLines)+1 < templateLinesLen{
-      return nil
-    }
+		oldLines := strings.Split(existingHeader, "\n")
+		if noHeadIgn && len(existingHeader) < 10 {
+			return nil
+		}
+		if noHeadIgn && len(oldLines)+1 < templateLinesLen {
+			return nil
+		}
 		if cleanedHeader == cleanedtemplateContent {
-      if verbose{
-			fmt.Printf("File %s is correct \n", path)
-      }
+			if verbose {
+				fmt.Printf("File %s is correct \n", path)
+			}
 			return nil
 		}
 
 		if !force && len(existingHeader) < 10 {
-      FixesCheck = true
+			FixesCheck = true
 			color.Red("No header found: %s \n", path)
 			return nil
 		}
 		//compare lines and show difference
 		newLines := strings.Split(templateContent, "\n")
 		if !force {
-      FixesCheck = true
+			FixesCheck = true
 			// if previosly found header but the header is smaller than template we assume it was not correct header
 			if len(oldLines)+1 < templateLinesLen {
 				color.Red("No centria copyright header found: %s \n!\n! \n", path)
